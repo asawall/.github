@@ -1,0 +1,44 @@
+name: Reusable - SSH Deploy
+
+on:
+  workflow_call:
+    inputs:
+      runner-label:
+        required: true
+        type: string
+      host:
+        required: true
+        type: string
+      user:
+        required: false
+        type: string
+        default: 'root'
+      port:
+        required: false
+        type: number
+        default: 22
+      script:
+        required: true
+        type: string
+        description: 'Bash script to execute on remote'
+      timeout-seconds:
+        required: false
+        type: number
+        default: 120
+    secrets:
+      ssh-key:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, "${{ inputs.runner-label }}"]
+    timeout-minutes: 10
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ inputs.host }}
+          username: ${{ inputs.user }}
+          port: ${{ inputs.port }}
+          key: ${{ secrets.ssh-key }}
+          command_timeout: ${{ inputs.timeout-seconds }}s
+          script: ${{ inputs.script }}
