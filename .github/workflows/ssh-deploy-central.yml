@@ -1,0 +1,62 @@
+name: Reusable - SSH Deploy (zentraler Key)
+
+# Diese Variante nutzt den zentralen Deploy-Key /home/runner/.ssh/deploy_ed25519
+# der auf dem gha-runner-01 als Bind-Mount in jedem Runner-Container verfügbar ist.
+# Vorteil: KEIN per-Repo SSH-Key Secret mehr nötig.
+# Nachteil: funktioniert nur auf self-hosted Runnern.
+
+on:
+  workflow_call:
+    inputs:
+      runner-label:
+        required: true
+        type: string
+        description: 'Self-hosted runner label, z.B. kingdom-ai'
+      host:
+        required: true
+        type: string
+        description: 'Server-IP oder Hostname (aus vars.KAI_HOST etc.)'
+      user:
+        required: false
+        type: string
+        default: 'root'
+      port:
+        required: false
+        type: number
+        default: 22
+      script:
+        required: true
+        type: string
+        description: 'Bash-Skript, das auf dem Zielserver ausgeführt wird'
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, "${{ inputs.runner-label }}"]
+    timeout-minutes: 15
+    steps:
+      - name: SSH and run
+        env:
+          DEPLOY_HOST: ${{ inputs.host }}
+          DEPLOY_USER: ${{ inputs.user }}
+          DEPLOY_PORT: ${{ inputs.port }}
+          DEPLOY_SCRIPT: ${{ inputs.script }}
+        run: |
+          # Zentraler Deploy-Key ist als Bind-Mount im Runner verfügbar
+          if [ ! -f /home/runner/.ssh/deploy_ed25519 ]; then
+            echo "::error::Zentraler Deploy-Key nicht gefunden — ist der Bind-Mount aktiv?"
+            exit 1
+          fi
+          chmod 600 /home/runner/.ssh/deploy_ed25519
+          mkdir -p /home/runner/.ssh
+          
+          # Host-Key holen damit kein StrictHostKeyChecking nötig ist
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> /home/runner/.ssh/known_hosts 2>/dev/null
+          
+          # Skript via SSH ausführen
+          echo "$DEPLOY_SCRIPT" | ssh \
+            -i /home/runner/.ssh/deploy_ed25519 \
+            -p "$DEPLOY_PORT" \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            'bash -s'
