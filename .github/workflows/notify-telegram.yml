@@ -1,0 +1,47 @@
+name: Reusable - Telegram Notify
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+        description: 'success | failure | warning'
+      message:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      tg-token:
+        required: true
+      tg-chat:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send
+        env:
+          TG_TOKEN: ${{ secrets.tg-token }}
+          TG_CHAT: ${{ secrets.tg-chat }}
+          TITLE: ${{ inputs.title }}
+          STATUS: ${{ inputs.status }}
+          MSG: ${{ inputs.message }}
+        run: |
+          case "$STATUS" in
+            success) ICON="✅" ;;
+            failure) ICON="❌" ;;
+            warning) ICON="⚠️" ;;
+            *)       ICON="ℹ️" ;;
+          esac
+          BODY="${ICON} *${TITLE}*"
+          [ -n "$MSG" ] && BODY="${BODY}%0A%0A${MSG}"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT}" \
+            -d parse_mode=Markdown \
+            --data-urlencode "text=${BODY}"
