@@ -1,0 +1,57 @@
+name: Quarantine Check
+description: "Bricht Run ab nach N Fails in M Minuten auf demselben Branch"
+inputs:
+  fail-threshold:
+    required: false
+    default: "5"
+  window-minutes:
+    required: false
+    default: "30"
+  github-token:
+    required: true
+  telegram-token:
+    required: false
+    default: ""
+  telegram-chat-id:
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        FAIL_THRESHOLD: ${{ inputs.fail-threshold }}
+        WINDOW_MIN: ${{ inputs.window-minutes }}
+        TG_TOKEN: ${{ inputs.telegram-token }}
+        TG_CHAT: ${{ inputs.telegram-chat-id }}
+        WORKFLOW_REF: ${{ github.workflow_ref }}
+        BRANCH: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        EVENT: ${{ github.event_name }}
+        COMMIT_MSG: ${{ github.event.head_commit.message }}
+      run: |
+        set -e
+        if [ "$EVENT" = "workflow_dispatch" ]; then
+          echo "workflow_dispatch → Quarantine bypassed"; exit 0
+        fi
+        if echo "$COMMIT_MSG" | grep -qF "[skip-quarantine]"; then
+          echo "[skip-quarantine] → bypassed"; exit 0
+        fi
+        SINCE=$(date -u -d "${WINDOW_MIN} minutes ago" +%Y-%m-%dT%H:%M:%SZ)
+        WF_FILE=$(echo "$WORKFLOW_REF" | sed 's|.*/\.github/workflows/||;s|@.*||')
+        COUNT=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+          "https://api.github.com/repos/${REPO}/actions/workflows/${WF_FILE}/runs?status=failure&branch=${BRANCH}&created=>${SINCE}&per_page=20" \
+          | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d.get('workflow_runs',[])))" 2>/dev/null || echo 0)
+        echo "Failures of $WF_FILE on $BRANCH since $SINCE: $COUNT"
+        if [ "$COUNT" -ge "$FAIL_THRESHOLD" ]; then
+          MSG="🚨 QUARANTINE $REPO/$WF_FILE: $COUNT Fails auf $BRANCH (${WINDOW_MIN}min). Override: workflow_dispatch oder [skip-quarantine]. $RUN_URL"
+          echo "::error::$MSG"
+          if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT" ]; then
+            curl -sf -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+              -d "chat_id=${TG_CHAT}" --data-urlencode "text=${MSG}" >/dev/null || true
+          fi
+          exit 1
+        fi
+        echo "✓ Quarantine OK ($COUNT/$FAIL_THRESHOLD)"

@@ -1,0 +1,55 @@
+# Reusable Workflow: actionlint (GHA YAML) + shellcheck (Bash)
+# Aufruf: uses: asawall/.github/.github/workflows/lint.yml@main
+name: Lint (actionlint + shellcheck)
+
+on:
+  workflow_call:
+    inputs:
+      shell-script-paths:
+        description: "Globs für Bash-Scripts (default: scripts/**.sh, deploy/**.sh, .github/**.sh)"
+        required: false
+        type: string
+        default: "scripts/*.sh scripts/**/*.sh deploy/*.sh deploy/**/*.sh .github/scripts/*.sh"
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.7
+        with:
+          args: -color
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck --version
+      - name: Find and check shell scripts
+        run: |
+          set -e
+          FOUND=0
+          EXIT=0
+          for pattern in ${{ inputs.shell-script-paths }}; do
+            for f in $pattern; do
+              if [ -f "$f" ]; then
+                FOUND=$((FOUND+1))
+                echo "::group::shellcheck $f"
+                shellcheck -x -e SC2034,SC2154 "$f" || EXIT=$?
+                echo "::endgroup::"
+              fi
+            done
+          done
+          if [ "$FOUND" -eq 0 ]; then
+            echo "::notice::Keine Shell-Scripts gefunden"
+          else
+            echo "Geprüft: $FOUND Script(s)"
+          fi
+          exit $EXIT
