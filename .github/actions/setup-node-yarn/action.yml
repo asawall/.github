@@ -1,0 +1,27 @@
+name: Setup Node + Yarn
+description: "Node.js + yarn via corepack (pinned)"
+inputs:
+  node-version:
+    required: false
+    default: "20"
+  yarn-version:
+    required: false
+    default: "1.22.22"
+  cache-dependency-path:
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache-dependency-path != '' && 'yarn' || '' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+    - shell: bash
+      run: |
+        set -e
+        corepack enable
+        corepack prepare yarn@${{ inputs.yarn-version }} --activate
+        node --version
+        yarn --version
