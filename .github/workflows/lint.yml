@@ -1,15 +1,20 @@
-# Reusable Workflow: actionlint (GHA YAML) + shellcheck (Bash)
+# Reusable Workflow: actionlint + shellcheck (Severity ≥ warning)
+# Style/info-level Findings sind nicht-blocking (würden bei strikt-Mode 80% der Workflows rot färben).
 # Aufruf: uses: asawall/.github/.github/workflows/lint.yml@main
-name: Lint (actionlint + shellcheck)
+name: Lint
 
 on:
   workflow_call:
     inputs:
       shell-script-paths:
-        description: "Globs für Bash-Scripts (default: scripts/**.sh, deploy/**.sh, .github/**.sh)"
         required: false
         type: string
         default: "scripts/*.sh scripts/**/*.sh deploy/*.sh deploy/**/*.sh .github/scripts/*.sh"
+      shellcheck-severity:
+        description: "Severity threshold (style|info|warning|error). Default: warning"
+        required: false
+        type: string
+        default: "warning"
 
 jobs:
   actionlint:
@@ -17,10 +22,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Run actionlint
+      - name: Run actionlint (with shellcheck severity ${{ inputs.shellcheck-severity }})
         uses: docker://rhysd/actionlint:1.7.7
         with:
-          args: -color
+          args: -color -shellcheck "-S ${{ inputs.shellcheck-severity }}"
 
   shellcheck:
     runs-on: ubuntu-latest
@@ -31,8 +36,9 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck --version
       - name: Find and check shell scripts
+        env:
+          SEVERITY: ${{ inputs.shellcheck-severity }}
         run: |
           set -e
           FOUND=0
@@ -42,7 +48,7 @@ jobs:
               if [ -f "$f" ]; then
                 FOUND=$((FOUND+1))
                 echo "::group::shellcheck $f"
-                shellcheck -x -e SC2034,SC2154 "$f" || EXIT=$?
+                shellcheck -x -S "$SEVERITY" -e SC2034,SC2154 "$f" || EXIT=$?
                 echo "::endgroup::"
               fi
             done
@@ -50,6 +56,6 @@ jobs:
           if [ "$FOUND" -eq 0 ]; then
             echo "::notice::Keine Shell-Scripts gefunden"
           else
-            echo "Geprüft: $FOUND Script(s)"
+            echo "Geprüft: $FOUND Script(s) (Severity ≥ $SEVERITY)"
           fi
           exit $EXIT
