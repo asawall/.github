@@ -1,0 +1,42 @@
+# Reusable Workflow: Auto-Merge für Dependabot patch+minor PRs wenn CI grün
+# Aufruf: uses: asawall/.github/.github/workflows/dependabot-auto-merge.yml@main
+name: Dependabot Auto-Merge
+
+on:
+  workflow_call:
+    inputs:
+      auto-merge-major:
+        description: "Auch major versions auto-mergen? Default false (riskant)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+      - name: Auto-approve patch + minor
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          (inputs.auto-merge-major && steps.meta.outputs.update-type == 'version-update:semver-major')
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable auto-merge (squash)
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
