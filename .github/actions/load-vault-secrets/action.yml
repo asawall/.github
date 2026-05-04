@@ -1,0 +1,100 @@
+name: Load Vault Secrets
+description: |
+  Lädt Secrets aus dem zentralen Infisical Vault als Environment-Variablen.
+  Reusable composite action für alle Repos.
+
+  Usage:
+    - uses: asawall/.github/.github/actions/load-vault-secrets@main
+      with:
+        project-slug: tecmatiq
+        env-slug: prod
+        path: /github
+        keys: GITHUB_PAT,TELEGRAM_BOT_TOKEN
+        # Anschließend stehen die Werte als ${{ env.GITHUB_PAT }} etc. zur Verfügung
+
+inputs:
+  project-slug:
+    description: Vault-Projekt-Slug (z.B. 'tecmatiq')
+    required: true
+  env-slug:
+    description: Environment-Slug (prod / staging / dev)
+    required: false
+    default: prod
+  path:
+    description: Folder-Pfad innerhalb des Projekts
+    required: false
+    default: /
+  keys:
+    description: Komma-getrennte Liste von Secret-Schlüsseln
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Authenticate against Vault
+      shell: bash
+      env:
+        VAULT_URL: ${{ env.VAULT_URL || 'https://vault.tecmatiq.de' }}
+        CLIENT_ID: ${{ env.VAULT_CLIENT_ID }}
+        CLIENT_SECRET: ${{ env.VAULT_CLIENT_SECRET }}
+      run: |
+        set -euo pipefail
+        if [ -z "${CLIENT_ID:-}" ] || [ -z "${CLIENT_SECRET:-}" ]; then
+          echo "::error::VAULT_CLIENT_ID / VAULT_CLIENT_SECRET nicht gesetzt"
+          exit 1
+        fi
+
+        TOKEN=$(curl -sS -X POST "$VAULT_URL/api/v1/auth/universal-auth/login" \
+          -H "Content-Type: application/json" \
+          -d "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" \
+          | python3 -c 'import json,sys; print(json.load(sys.stdin).get("accessToken",""))')
+
+        if [ -z "$TOKEN" ]; then
+          echo "::error::Vault-Login fehlgeschlagen"
+          exit 1
+        fi
+
+        echo "VAULT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+        echo "::add-mask::$TOKEN"
+
+    - name: Fetch Secrets
+      shell: bash
+      env:
+        VAULT_URL: ${{ env.VAULT_URL || 'https://vault.tecmatiq.de' }}
+        PROJECT_SLUG: ${{ inputs.project-slug }}
+        ENV_SLUG: ${{ inputs.env-slug }}
+        SECRET_PATH: ${{ inputs.path }}
+        KEYS: ${{ inputs.keys }}
+      run: |
+        set -euo pipefail
+        IFS=',' read -ra REQUESTED <<< "$KEYS"
+
+        # Fetch all secrets from path
+        ENCODED_PATH=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$SECRET_PATH")
+        RESP=$(curl -sS -G "$VAULT_URL/api/v3/secrets/raw" \
+          -H "Authorization: Bearer $VAULT_TOKEN" \
+          --data-urlencode "workspaceSlug=$PROJECT_SLUG" \
+          --data-urlencode "environment=$ENV_SLUG" \
+          --data-urlencode "secretPath=$SECRET_PATH")
+
+        # Extract and export each requested key
+        for KEY in "${REQUESTED[@]}"; do
+          KEY="${KEY// /}"
+          VALUE=$(echo "$RESP" | python3 -c "
+import json, sys
+key = '$KEY'
+data = json.load(sys.stdin)
+for s in data.get('secrets', []):
+    if s.get('secretKey') == key:
+        print(s.get('secretValue', ''))
+        sys.exit(0)
+sys.exit(1)
+")
+          if [ -z "$VALUE" ]; then
+            echo "::error::Secret '$KEY' nicht gefunden in $PROJECT_SLUG/$ENV_SLUG$SECRET_PATH"
+            exit 1
+          fi
+          echo "::add-mask::$VALUE"
+          echo "${KEY}=${VALUE}" >> "$GITHUB_ENV"
+          echo "  ✓ ${KEY} loaded"
+        done
