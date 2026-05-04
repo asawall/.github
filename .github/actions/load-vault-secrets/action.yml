@@ -1,16 +1,16 @@
 name: Load Vault Secrets
-description: Lädt Secrets aus dem zentralen Infisical Vault als GITHUB_ENV-Variablen. Caller muss VAULT_CLIENT_ID und VAULT_CLIENT_SECRET im env-Block des Step setzen.
+description: Lädt Secrets aus Infisical Vault als GITHUB_ENV-Variablen. Caller muss VAULT_CLIENT_ID und VAULT_CLIENT_SECRET im env-Block des Step setzen.
 
 inputs:
   project-slug:
-    description: Vault-Projekt-Slug (z.B. tecmatiq, frageinen, planningx)
+    description: Vault-Projekt-Slug
     required: true
   env-slug:
-    description: Environment-Slug (prod, staging, dev)
+    description: Environment-Slug
     required: false
     default: prod
   path:
-    description: Folder-Pfad innerhalb des Projekts
+    description: Folder-Pfad
     required: false
     default: /
   keys:
@@ -34,21 +34,17 @@ runs:
           echo "::error::VAULT_CLIENT_ID / VAULT_CLIENT_SECRET nicht im env-Block des aufrufenden Steps gesetzt"
           exit 1
         fi
-
         TOKEN=$(curl -sS -X POST "$VAULT_URL/api/v1/auth/universal-auth/login" \
           -H "Content-Type: application/json" \
           -d "{\"clientId\":\"$VAULT_CLIENT_ID\",\"clientSecret\":\"$VAULT_CLIENT_SECRET\"}" \
-          | python3 -c 'import json,sys; print(json.load(sys.stdin).get("accessToken",""))')
-
+          | jq -r '.accessToken // empty')
         if [ -z "$TOKEN" ]; then
           echo "::error::Vault-Login fehlgeschlagen"
           exit 1
         fi
-
         echo "VAULT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
         echo "VAULT_URL_RESOLVED=$VAULT_URL" >> "$GITHUB_ENV"
         echo "::add-mask::$TOKEN"
-
     - name: Fetch Secrets
       shell: bash
       env:
@@ -58,31 +54,20 @@ runs:
         KEYS: ${{ inputs.keys }}
       run: |
         set -euo pipefail
-        IFS=',' read -ra REQUESTED <<< "$KEYS"
-
         RESP=$(curl -sS -G "$VAULT_URL_RESOLVED/api/v3/secrets/raw" \
           -H "Authorization: Bearer $VAULT_TOKEN" \
           --data-urlencode "workspaceSlug=$PROJECT_SLUG" \
           --data-urlencode "environment=$ENV_SLUG" \
           --data-urlencode "secretPath=$SECRET_PATH")
-
-        for KEY in "${REQUESTED[@]}"; do
-          KEY="${KEY// /}"
-          VALUE=$(echo "$RESP" | KEY="$KEY" python3 -c "
-import json, sys, os
-key = os.environ['KEY']
-data = json.load(sys.stdin)
-for s in data.get('secrets', []):
-    if s.get('secretKey') == key:
-        print(s.get('secretValue', ''))
-        sys.exit(0)
-sys.exit(1)
-")
-          if [ -z "$VALUE" ]; then
-            echo "::error::Secret '$KEY' nicht gefunden in $PROJECT_SLUG/$ENV_SLUG$SECRET_PATH"
+        IFS=',' read -ra REQUESTED <<< "$KEYS"
+        for K in "${REQUESTED[@]}"; do
+          K="${K// /}"
+          V=$(echo "$RESP" | jq -r --arg k "$K" '.secrets[] | select(.secretKey == $k) | .secretValue')
+          if [ -z "$V" ]; then
+            echo "::error::Secret $K nicht gefunden in $PROJECT_SLUG/$ENV_SLUG$SECRET_PATH"
             exit 1
           fi
-          echo "::add-mask::$VALUE"
-          echo "${KEY}=${VALUE}" >> "$GITHUB_ENV"
-          echo "  ✓ ${KEY} loaded"
+          echo "::add-mask::$V"
+          echo "${K}=${V}" >> "$GITHUB_ENV"
+          echo "  + ${K} loaded"
         done
