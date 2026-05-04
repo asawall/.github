@@ -7,6 +7,34 @@ follow it.
 
 ---
 
+## Session bootstrap (do this FIRST in every new session)
+
+A fresh Anthropic sandbox has nothing in `/home/claude/`. Before you can do
+anything authenticated, you need read-only Vault credentials. They are
+provided via Andreas's project Custom Instructions or as Project Knowledge.
+
+The bootstrap looks like this:
+
+```bash
+mkdir -p /home/claude
+echo "<VAULT_CLIENT_ID from Custom Instructions>" > /home/claude/vault_client_id
+echo "<VAULT_CLIENT_SECRET from Custom Instructions>" > /home/claude/vault_client_secret
+chmod 600 /home/claude/vault_*
+```
+
+If those values are not in your context (Custom Instructions / Project
+Knowledge / chat history), ASK Andreas once. Do not guess.
+
+The identity used here is **`gha-ci-service`** — a strict read-only viewer in
+all three tenants. It can **read** any secret, but cannot write or delete.
+That makes it safe to expose to a Claude session.
+
+For destructive operations (creating identities, rotating credentials,
+managing memberships), Andreas needs to provide `sape-admin-service`
+credentials separately, OR do the action himself in the Vault UI.
+
+---
+
 ## TL;DR — the three things you must never do wrong
 
 1. **Authenticated GitHub operations**: when `git push` fails with `401 Bad credentials`,
@@ -37,15 +65,11 @@ follow it.
 
 ### Identities (Universal Auth)
 
-| Identity | Role | Use case |
-|----------|------|----------|
-| `sape-admin-service` | admin in all 3 tenants | CRUD on secrets, anything destructive |
-| `gha-ci-service` | viewer in all 3 tenants | read-only at workflow runtime |
+| Identity | Role | Use |
+|----------|------|-----|
+| `gha-ci-service` | viewer (all 3 tenants) | **default for Claude sessions, read-only** |
+| `sape-admin-service` | admin (all 3 tenants) | CRUD; only when Andreas explicitly provides credentials |
 | `bootstrap-temp` | superadmin | only for org-level setup, do not use |
-
-**Credentials are not in this file.** They live on operator machines under
-`/home/claude/sape_admin_client_id` + `/home/claude/sape_admin_client_secret`,
-or in repository secrets `VAULT_CLIENT_ID` + `VAULT_CLIENT_SECRET`.
 
 ---
 
@@ -55,7 +79,7 @@ or in repository secrets `VAULT_CLIENT_ID` + `VAULT_CLIENT_SECRET`.
 # Step 1: log in to Vault, get a short-lived access token
 VAULT_TOKEN=$(curl -sS -X POST "https://vault.tecmatiq.de/api/v1/auth/universal-auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"clientId\":\"$(cat /home/claude/sape_admin_client_id)\",\"clientSecret\":\"$(cat /home/claude/sape_admin_client_secret)\"}" \
+  -d "{\"clientId\":\"$(cat /home/claude/vault_client_id)\",\"clientSecret\":\"$(cat /home/claude/vault_client_secret)\"}" \
   | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
 
 # Step 2: pull the secret you need
@@ -94,7 +118,7 @@ GIT_PAT=$(curl -sS "https://vault.tecmatiq.de/api/v3/secrets/raw/GIT_PAT?workspa
 **Correct response** (always do this):
 
 ```bash
-# 1. Pull the fresh PAT from Vault (see pattern above) → $GIT_PAT
+# 1. Pull the fresh PAT from Vault (see pattern above) -> $GIT_PAT
 # 2. Set the remote URL with the live token
 git remote set-url origin "https://x-access-token:${GIT_PAT}@github.com/asawall/<repo>.git"
 # 3. Push
@@ -168,12 +192,12 @@ diagnostic workflow. Do not ask Andreas to run shell commands.
 
 ## Quick test — am I set up correctly?
 
-Run this one-liner. If it prints `asawall`, your auth pipeline works:
+After bootstrap, run this one-liner. If it prints `asawall`, your auth pipeline works:
 
 ```bash
 VAULT_TOKEN=$(curl -sS -X POST "https://vault.tecmatiq.de/api/v1/auth/universal-auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"clientId\":\"$(cat /home/claude/sape_admin_client_id)\",\"clientSecret\":\"$(cat /home/claude/sape_admin_client_secret)\"}" \
+  -d "{\"clientId\":\"$(cat /home/claude/vault_client_id)\",\"clientSecret\":\"$(cat /home/claude/vault_client_secret)\"}" \
   | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])") && \
 GIT_PAT=$(curl -sS "https://vault.tecmatiq.de/api/v3/secrets/raw/GIT_PAT?workspaceSlug=tecmatiq&environment=prod&secretPath=%2Fproviders" \
   -H "Authorization: Bearer $VAULT_TOKEN" \
@@ -185,4 +209,4 @@ curl -sS -H "Authorization: Bearer $GIT_PAT" "https://api.github.com/user" \
 ---
 
 *Last updated: 2026-05-04. Author: Claude (under direction of Andreas Sawall).*
-*Edit history: see `git log -p .github/CLAUDE.md` in this repo.*
+*Edit history: see `git log -p CLAUDE.md` in this repo.*
