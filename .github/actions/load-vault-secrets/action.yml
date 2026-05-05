@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Authenticate against Vault
+    - name: Authenticate against Vault (with retry)
       shell: bash
       env:
         VAULT_URL: ${{ inputs.vault-url }}
@@ -34,18 +34,53 @@ runs:
           echo "::error::VAULT_CLIENT_ID / VAULT_CLIENT_SECRET nicht im env-Block des aufrufenden Steps gesetzt"
           exit 1
         fi
-        TOKEN=$(curl -sS -X POST "$VAULT_URL/api/v1/auth/universal-auth/login" \
-          -H "Content-Type: application/json" \
-          -d "{\"clientId\":\"$VAULT_CLIENT_ID\",\"clientSecret\":\"$VAULT_CLIENT_SECRET\"}" \
-          | jq -r '.accessToken // empty')
+
+        # Random startup-jitter (0-3s) um Stampede-Effekt bei parallelen jobs zu mildern
+        JITTER=$(awk -v seed=$RANDOM 'BEGIN { srand(seed); printf "%.2f\n", rand()*3 }')
+        echo "  Pre-auth jitter: ${JITTER}s"
+        sleep "$JITTER"
+
+        TOKEN=""
+        for ATTEMPT in 1 2 3 4 5; do
+          # HTTP-Status separat erfassen, damit wir HTML-Errorpages erkennen
+          HTTP_CODE=$(curl -sS -o /tmp/vault_resp.json -w "%{http_code}" \
+            -X POST "$VAULT_URL/api/v1/auth/universal-auth/login" \
+            -H "Content-Type: application/json" \
+            --max-time 15 \
+            -d "{\"clientId\":\"$VAULT_CLIENT_ID\",\"clientSecret\":\"$VAULT_CLIENT_SECRET\"}" 2>/dev/null || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            # Sichere JSON-Validation vor jq-Parse
+            if jq -e . /tmp/vault_resp.json >/dev/null 2>&1; then
+              TOKEN=$(jq -r '.accessToken // empty' /tmp/vault_resp.json)
+              if [ -n "$TOKEN" ]; then
+                echo "  Auth OK (attempt $ATTEMPT)"
+                break
+              fi
+            fi
+          fi
+
+          echo "  Auth attempt $ATTEMPT failed (HTTP=$HTTP_CODE), response head:"
+          head -c 200 /tmp/vault_resp.json 2>/dev/null | tr '\n' ' ' || true
+          echo ""
+
+          if [ "$ATTEMPT" -lt 5 ]; then
+            BACKOFF=$((2 ** ATTEMPT))
+            echo "  Retrying in ${BACKOFF}s..."
+            sleep "$BACKOFF"
+          fi
+        done
+
         if [ -z "$TOKEN" ]; then
-          echo "::error::Vault-Login fehlgeschlagen"
+          echo "::error::Vault-Login nach 5 Versuchen fehlgeschlagen (last HTTP=$HTTP_CODE)"
           exit 1
         fi
+
+        rm -f /tmp/vault_resp.json
         echo "VAULT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
         echo "VAULT_URL_RESOLVED=$VAULT_URL" >> "$GITHUB_ENV"
         echo "::add-mask::$TOKEN"
-    - name: Fetch Secrets
+    - name: Fetch Secrets (with retry)
       shell: bash
       env:
         PROJECT_SLUG: ${{ inputs.project-slug }}
@@ -54,11 +89,41 @@ runs:
         KEYS: ${{ inputs.keys }}
       run: |
         set -euo pipefail
-        RESP=$(curl -sS -G "$VAULT_URL_RESOLVED/api/v3/secrets/raw" \
-          -H "Authorization: Bearer $VAULT_TOKEN" \
-          --data-urlencode "workspaceSlug=$PROJECT_SLUG" \
-          --data-urlencode "environment=$ENV_SLUG" \
-          --data-urlencode "secretPath=$SECRET_PATH")
+        RESP=""
+        HTTP_CODE=0
+        for ATTEMPT in 1 2 3 4 5; do
+          HTTP_CODE=$(curl -sS -G "$VAULT_URL_RESOLVED/api/v3/secrets/raw" \
+            -H "Authorization: Bearer $VAULT_TOKEN" \
+            --data-urlencode "workspaceSlug=$PROJECT_SLUG" \
+            --data-urlencode "environment=$ENV_SLUG" \
+            --data-urlencode "secretPath=$SECRET_PATH" \
+            -o /tmp/vault_secrets.json -w "%{http_code}" \
+            --max-time 20 2>/dev/null || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ] && jq -e . /tmp/vault_secrets.json >/dev/null 2>&1; then
+            RESP=$(cat /tmp/vault_secrets.json)
+            echo "  Fetch OK (attempt $ATTEMPT)"
+            break
+          fi
+
+          echo "  Fetch attempt $ATTEMPT failed (HTTP=$HTTP_CODE), response head:"
+          head -c 200 /tmp/vault_secrets.json 2>/dev/null | tr '\n' ' ' || true
+          echo ""
+
+          if [ "$ATTEMPT" -lt 5 ]; then
+            BACKOFF=$((2 ** ATTEMPT))
+            echo "  Retrying in ${BACKOFF}s..."
+            sleep "$BACKOFF"
+          fi
+        done
+
+        if [ -z "$RESP" ]; then
+          echo "::error::Vault-Fetch nach 5 Versuchen fehlgeschlagen (last HTTP=$HTTP_CODE)"
+          exit 1
+        fi
+
+        rm -f /tmp/vault_secrets.json
+
         IFS=',' read -ra REQUESTED <<< "$KEYS"
         for K in "${REQUESTED[@]}"; do
           K="${K// /}"
