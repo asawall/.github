@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: ''
+      runner-label:
+        description: "Zusätzliches Runner-Label. Leer = beliebiger self-hosted-linux."
+        required: false
+        type: string
+        default: ""
     secrets:
       tg-token:
         required: true
@@ -22,7 +27,7 @@ on:
 
 jobs:
   notify:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
     timeout-minutes: 2
     steps:
       - name: Send

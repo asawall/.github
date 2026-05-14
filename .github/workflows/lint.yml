@@ -1,11 +1,20 @@
 # Reusable Workflow: actionlint + shellcheck (Severity ≥ warning)
 # Style/info-level Findings sind nicht-blocking (würden bei strikt-Mode 80% der Workflows rot färben).
 # Aufruf: uses: asawall/.github/.github/workflows/lint.yml@main
+#
+# Runner: läuft auf den ephemeren self-hosted Runnern (Label [self-hosted, linux]).
+# Tools werden bei jedem Lauf als statische Binaries nachgeladen — keine Abhängigkeit
+# von apt/sudo oder Docker-in-Docker im Container.
 name: Lint
 
 on:
   workflow_call:
     inputs:
+      runner-label:
+        description: "Zusätzliches Runner-Label (z.B. 'kingdom-ai'). Leer = beliebiger self-hosted-linux."
+        required: false
+        type: string
+        default: ""
       shell-script-paths:
         required: false
         type: string
@@ -18,24 +27,75 @@ on:
 
 jobs:
   actionlint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install actionlint (static binary)
+        run: |
+          set -e
+          ACTIONLINT_VERSION="1.7.7"
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ARCH=amd64 ;;
+            aarch64) ARCH=arm64 ;;
+            *) echo "Unsupported arch: $ARCH" >&2; exit 1 ;;
+          esac
+          TMPDIR=$(mktemp -d)
+          curl -sSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${ARCH}.tar.gz" \
+            | tar -xz -C "$TMPDIR" actionlint
+          install -m 0755 "$TMPDIR/actionlint" "$RUNNER_TEMP/actionlint"
+          rm -rf "$TMPDIR"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/actionlint" -version
+
+      - name: Install shellcheck (static binary, für Inline-Check durch actionlint)
+        run: |
+          set -e
+          SHELLCHECK_VERSION="0.10.0"
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ARCH=x86_64 ;;
+            aarch64) ARCH=aarch64 ;;
+            *) echo "Unsupported arch: $ARCH" >&2; exit 1 ;;
+          esac
+          TMPDIR=$(mktemp -d)
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.${ARCH}.tar.xz" \
+            | tar -xJ -C "$TMPDIR"
+          install -m 0755 "$TMPDIR/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" "$RUNNER_TEMP/shellcheck"
+          rm -rf "$TMPDIR"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/shellcheck" --version
+
       - name: Run actionlint (with shellcheck severity ${{ inputs.shellcheck-severity }})
-        uses: docker://rhysd/actionlint:1.7.7
-        with:
-          args: -color -shellcheck "-S ${{ inputs.shellcheck-severity }}"
+        run: |
+          actionlint -color -shellcheck "$(command -v shellcheck) -S ${{ inputs.shellcheck-severity }}"
 
   shellcheck:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Install shellcheck
+
+      - name: Install shellcheck (static binary)
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y shellcheck
+          set -e
+          SHELLCHECK_VERSION="0.10.0"
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ARCH=x86_64 ;;
+            aarch64) ARCH=aarch64 ;;
+            *) echo "Unsupported arch: $ARCH" >&2; exit 1 ;;
+          esac
+          TMPDIR=$(mktemp -d)
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.${ARCH}.tar.xz" \
+            | tar -xJ -C "$TMPDIR"
+          install -m 0755 "$TMPDIR/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" "$RUNNER_TEMP/shellcheck"
+          rm -rf "$TMPDIR"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          shellcheck --version
+
       - name: Find and check shell scripts
         env:
           SEVERITY: ${{ inputs.shellcheck-severity }}

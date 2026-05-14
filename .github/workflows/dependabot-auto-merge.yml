@@ -1,5 +1,8 @@
 # Reusable Workflow: Auto-Merge für Dependabot patch+minor PRs wenn CI grün
 # Aufruf: uses: asawall/.github/.github/workflows/dependabot-auto-merge.yml@main
+#
+# Runner: läuft auf den ephemeren self-hosted Runnern (Label [self-hosted, linux]).
+# gh CLI wird als statisches Binary nachgeladen (apt-frei, sudo-frei).
 name: Dependabot Auto-Merge
 
 on:
@@ -10,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      runner-label:
+        description: "Zusätzliches Runner-Label (z.B. 'kingdom-ai'). Leer = beliebiger self-hosted-linux."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -18,11 +26,35 @@ permissions:
 jobs:
   auto-merge:
     if: github.actor == 'dependabot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
+    timeout-minutes: 3
     steps:
+      - name: Ensure gh CLI is available
+        run: |
+          set -e
+          if command -v gh >/dev/null 2>&1; then
+            echo "gh CLI already present: $(gh --version | head -1)"
+            exit 0
+          fi
+          GH_VERSION="2.62.0"
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ARCH=amd64 ;;
+            aarch64) ARCH=arm64 ;;
+            *) echo "Unsupported arch: $ARCH" >&2; exit 1 ;;
+          esac
+          TMPDIR=$(mktemp -d)
+          curl -sSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${ARCH}.tar.gz" \
+            | tar -xz -C "$TMPDIR"
+          install -m 0755 "$TMPDIR/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" "$RUNNER_TEMP/gh"
+          rm -rf "$TMPDIR"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/gh" --version
+
       - name: Get Dependabot metadata
         id: meta
         uses: dependabot/fetch-metadata@v2
+
       - name: Auto-approve patch + minor
         if: |
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
@@ -32,6 +64,7 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Enable auto-merge (squash)
         if: |
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
