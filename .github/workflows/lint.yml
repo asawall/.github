@@ -26,7 +26,7 @@ on:
 
 jobs:
   actionlint:
-    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -129,7 +129,7 @@ jobs:
           actionlint -color -shellcheck "$(command -v shellcheck) -S ${{ inputs.shellcheck-severity }}"
 
   shellcheck:
-    runs-on: ${{ inputs.runner-label == '' && fromJSON('["self-hosted","linux"]') || fromJSON(format('["self-hosted","linux","{0}"]', inputs.runner-label)) }}
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
