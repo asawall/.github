@@ -210,3 +210,23 @@ curl -sS -H "Authorization: Bearer $GIT_PAT" "https://api.github.com/user" \
 
 *Last updated: 2026-05-04. Author: Claude (under direction of Andreas Sawall).*
 *Edit history: see `git log -p CLAUDE.md` in this repo.*
+
+## Runbook: rissfest secret-sync (KAI)
+
+`rissfest-secret-sync.timer` on KAI (every 15 min) keeps `ANTHROPIC_API_KEY` +
+`OPENAI_API_KEY` in `/opt/rissfest/.env` aligned with Vault
+(`tecmatiq/prod/providers`) and recreates `rissfest-web` only on a real diff.
+Fail-safe (never writes empty/short values, no-ops if Vault is down), and
+registry-independent (re-tags the running image as `:latest`, recreates with
+`--pull never` — so a stale GHCR login never blocks it).
+
+- Source (versioned): `asawall/rissfest` → `ops/rissfest-secret-sync.py`
+- Installed at `/usr/local/bin/rissfest-secret-sync.py`, run as root by the timer
+- Read-only Vault creds (`gha-ci-service`) at `/etc/rissfest/vault-creds.env`
+- Check: `systemctl list-timers rissfest-secret-sync.timer`;
+  logs `journalctl -u rissfest-secret-sync.service`
+- Rotating the key in Vault propagates to prod within 15 min automatically.
+
+Context: the Anthropic key had drifted stale in `.env` (nothing synced it),
+silently degrading the on-site agent (`/api/agent`) and the cold-mail
+personalizer (`personalize.ts`) to fallbacks. This timer prevents recurrence.
