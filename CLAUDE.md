@@ -213,9 +213,10 @@ curl -sS -H "Authorization: Bearer $GIT_PAT" "https://api.github.com/user" \
 
 ## Runbook: rissfest secret-sync (KAI)
 
-`rissfest-secret-sync.timer` on KAI (every 15 min) keeps `ANTHROPIC_API_KEY` +
-`OPENAI_API_KEY` in `/opt/rissfest/.env` aligned with Vault
-(`tecmatiq/prod/providers`) and recreates `rissfest-web` only on a real diff.
+`rissfest-secret-sync.timer` on KAI (every 15 min) keeps `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY`, `TELEGRAM_BOT_TOKEN` (Vault `TELEGRAM_BOT_TOKEN_AUTOSAPE`) and
+`TELEGRAM_ALERT_CHAT_ID` (Vault `TELEGRAM_CHAT_ID`) in `/opt/rissfest/.env` aligned
+with Vault (`tecmatiq/prod/providers`) via a .env-key -> Vault-key mapping and recreates `rissfest-web` only on a real diff.
 Fail-safe (never writes empty/short values, no-ops if Vault is down), and
 registry-independent (re-tags the running image as `:latest`, recreates with
 `--pull never` — so a stale GHCR login never blocks it).
