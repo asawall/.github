@@ -23,14 +23,16 @@ any conflict. Details in `regeln.md`.
 
 ---
 
-## Load the rest now (run this)
+## Load the rest now (one command)
 
 ```bash
-BASE="https://raw.githubusercontent.com/asawall/.github/main"
-for f in regeln infra gotchas runbooks worklog; do
-  echo "===== $f.md ====="; curl -s "$BASE/$f.md"; echo
-done
+curl -s https://raw.githubusercontent.com/asawall/.github/main/bootstrap.sh | bash
 ```
+
+This prints every memory file (regeln, infra, gotchas, runbooks, worklog) and runs a
+secrets-free auth health check. It is the single load mechanism: the file set is
+declared once in `bootstrap.sh` (`FILES=`) and mirrored in the layout table above.
+Fallback if bootstrap.sh is unreachable: curl each `<name>.md` from the same raw dir.
 
 ---
 

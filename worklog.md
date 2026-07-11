@@ -4,6 +4,9 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-11 — Added bootstrap.sh: one-command memory load + secrets-free auth
+  health check. CLAUDE.md load-block now calls it; file set declared in 2 places only
+  (index layout table + bootstrap FILES).
 - 2026-07-11 — Restructured durable memory in asawall/.github from monolithic CLAUDE.md
   into index + regeln.md / infra.md / gotchas.md / worklog.md / runbooks.md +
   CLAUDE_TEMPLATE.md. Killed the second (drifted) `.github/CLAUDE.md`. Boundary set:

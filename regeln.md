@@ -66,6 +66,15 @@ session where anything durable changed:
 
 Keep entries short. Density over prose.
 
+### Declaring the file set (don't re-introduce drift)
+
+The set of memory files is declared in exactly **two** places:
+1. the layout table in `CLAUDE.md` (human-facing), and
+2. `FILES=` in `bootstrap.sh` (machine-facing loader).
+
+When you add or remove an area file, update **both** — and nowhere else. No third
+list of files anywhere.
+
 ---
 
 ## Standing hard directives (project-wide)
