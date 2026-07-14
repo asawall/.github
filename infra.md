@@ -139,10 +139,27 @@ Other reusable workflows in this repo (see README.md): `docker-build-push.yml`,
 | Hosting | 88.99.195.89 | cPanel + JetBackup + Wissenscloud |
 | gha-runner-01 | 178.104.211.135 | 15 ephemeral GHA runners |
 
-**SSH access from Claude**: via `gha-runner-01` deploy-key
-(`/home/gha/.ssh/deploy_ed25519`) by triggering a one-shot `workflow_dispatch` on a
-diagnostic workflow. Do not ask Andreas to run shell commands. Delete one-shot
-diagnostic workflows after success.
+**SSH access from Claude**: via `gha-runner-01` deploy-key by triggering a one-shot
+`workflow_dispatch` on a diagnostic workflow. Do not ask Andreas to run shell
+commands. Delete one-shot diagnostic workflows after success.
+
+Key path is **`/home/runner/.ssh/deploy_ed25519`** (verified 2026-07-14 — NOT
+`/home/gha/.ssh/`, that path does not exist). Runners are containers running as
+root, HOME=/root, workspace `/runner/_work` — and that workspace **persists across
+runs**: "ephemeral" covers the runner process, not the volume. Jobs without
+`actions/checkout` must clean up themselves (see gotchas.md).
+
+The key reaches Hosting (88.99.195.89) and KAI as root.
+
+**Hetzner Storage Box u570556** (5 TB, ~4.1 TB free): not mounted on the runner.
+Reachable only via the hosting-server, which has `/root/.ssh/storagebox_key` and an
+fstab SSHFS mount `u570556:nextcloud-data -> /mnt/storagebox-nc` (reconnect,_netdev).
+Backup layout under that mount:
+- `db-backups/{kai,botmatiq,hosting,n8n}/YYYYMMDD/<db>_HHMM.sql.gz` — written by
+  `kingdom-ai/db-backup.yml` 02:30 UTC, restore-validated daily by
+  `infra-monitoring/backup-restore-validate.yml` 04:30 UTC
+- `repo-backups/YYYYMMDD/repo-backup.tar.gz` — `infra-monitoring/repo-backup.yml`
+  02:00 UTC, 30 generations (see runbooks.md)
 
 ### Repository Variables (central, available as `${{ vars.NAME }}` in all repos)
 
