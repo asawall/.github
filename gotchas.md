@@ -120,3 +120,23 @@
 - **Fix**: fuer alles Echte `rsync`/`sftp -b`/`scp` benutzen oder den
   vorhandenen SSHFS-Mount auf dem Hosting-Server.
 
+### JetBackup: mtime auf der Storage Box ist KEIN Gesundheitssignal
+- **Symptom**: `backup/jetbackup/jetbackup_1_1_<job>/` und die Account-Ordner
+  darunter zeigen mtimes von vor Monaten. Sieht nach totem Backup aus.
+- **Cause**: Ist es nicht. `Backup Structure: Incremental (1)` legt die
+  Rotations-Slots `snap.1..snap.N` EINMAL an und schreibt danach nur noch in
+  `files00000000NN/` und `jetbackup.index` hinein. Ein Verzeichnis-mtime aendert
+  sich nur, wenn ein Eintrag darin angelegt/geloescht wird — bei reinem
+  Hineinschreiben nie. Die Account-mtimes stehen deshalb auf dem Tag, an dem der
+  letzte snap-Slot entstand.
+- **Fix**: Gesundheit NUR an diesen drei Dingen pruefen, nie am mtime:
+  1. `jetbackup.index` mtime im Account-Ordner (wird jede Nacht angefasst)
+  2. `files00000000NN/` mtime (der eigentliche Dedup-Store)
+  3. das Job-Log `1_*.log` in `/usr/local/jetapps/var/log/jetbackup5/queue/`
+     — "Backup Completed" pro Account. NICHT `128_*.log`, das ist Snapshot-Cleanup.
+- Stand 14.07.2026 verifiziert gesund: 8 Accounts, ~95 s/Nacht (incremental +
+  dedup, 900 Mbit/s Upload), Box 937 GB / 5 TB.
+- **Waisen**: `jetbackup_1_1_69ce2054...` (25.04.) und `jetbackup_3_4_69ce1dbf...`
+  (05.04.) gehoeren zu keinem aktiven Job mehr — JetBackup raeumt Destination-Daten
+  beim Loeschen eines Jobs nicht auf. Nur Platz, kein Fehler.
+
