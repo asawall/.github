@@ -4,6 +4,14 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-14 — repo-backup von Actions-Storage auf Storage Box umgezogen. Ziel jetzt
+  /mnt/storagebox-nc/repo-backups/YYYYMMDD/repo-backup.tar.gz (Schema wie db-backups),
+  Retention 30d offsite + 7d Artifact als Griffbereitschaft. Keine neuen Credentials:
+  Runner->Hosting deploy_ed25519, Hosting->Box vorhandener fstab-SSHFS. Live getestet:
+  11/11 Repos, 28 MB, byte-identisch verifiziert. Absicherung gegen stille Fehler:
+  tar -tzf lokal + mountpoint-Check + remote Groesse UND tar -tzf. OFFEN: 28 GB
+  cpmove-Altlasten in /home/manual-backups (03.05.); backup/jetbackup auf der Box
+  seit 04.05. nicht mehr angefasst — pruefen ob JetBackup die Box noch erreicht.
 - 2026-07-14 — GitHub Actions Storage bei 90% (1,81/2 GB). Ursache NICHT die Runner:
   Storage != Minuten. 16,6 GB Artifacts gefunden, 274 geloescht -> 1,6 GB. Drei
   Ursachen gefixt: botmatiq/windows-publish (21 Dispatches x 390 MB x 30d = 8,0 GB;
