@@ -90,9 +90,14 @@ git push origin main
 The PAT in Vault is always the current valid one. If Andreas rotates it, the new
 value lands in Vault and the next pull picks it up automatically.
 
-**Permission profile of the current Fine-Grained PAT**:
-- Contents read/write, Workflows write, Actions read/trigger
+**Permission profile of the current Fine-Grained PAT** (verified 2026-07-14):
+- Contents read/write, Workflows write
+- Actions read/write — incl. `DELETE /repos/{o}/{r}/actions/artifacts/{id}`
+- Administration write — incl.
+  `PUT /repos/{o}/{r}/actions/permissions/artifact-and-log-retention`
 - Metadata read
+- NO billing — `/users/asawall/settings/billing/*` returns 403. Storage/minute
+  usage must be derived from the artifacts + runs API, or read in the UI.
 - NO Secrets list/write — Andreas sets repo-secrets manually
 - NO Packages — GHCR push uses `secrets.GITHUB_TOKEN` (per-run) inside workflows
 
