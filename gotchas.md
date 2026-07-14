@@ -93,3 +93,30 @@
   nicht automatisch fuer den Workspace.
 - **Fix**: explizites `rm -rf` als erster Step + fester Artifact-Dateiname statt Glob.
 
+### Verschachteltes ssh/sftp frisst den restlichen Heredoc als stdin
+- **Symptom**: `ssh host 'bash -s' << 'REMOTE'` — das Script bricht nach dem
+  ersten inneren `ssh`/`sftp` kommentarlos ab, Rest der Ausgabe fehlt spurlos,
+  exit=0. Sieht aus wie "hat funktioniert".
+- **Cause**: Der innere Client liest stdin — und das ist der noch ungelesene
+  Heredoc des aeusseren `bash -s`.
+- **Fix**: jedes verschachtelte `ssh` mit `-n`, `sftp` mit `-b datei`,
+  `rsync` mit `< /dev/null`. **Aber**: wenn ein Aufruf selbst einen Heredoc
+  bekommen soll, darf er KEIN `-n` haben — dann kaeme nichts an.
+
+### /mnt/storagebox-nc ist nicht der Storage-Box-Root
+- **Symptom**: `sftp ls` auf der Box zeigt `nextcloud-data`, aber kein
+  `db-backups` — obwohl Workflows erfolgreich `/mnt/storagebox-nc/db-backups`
+  lesen. Sieht nach zwei verschiedenen Boxen aus. Ist es nicht.
+- **Cause**: fstab mountet `u570556@...:nextcloud-data` nach `/mnt/storagebox-nc`.
+  `db-backups` liegt also IN `nextcloud-data`.
+- **Fix**: Pfade immer gegen `mount | grep sshfs` pruefen, nicht gegen ein
+  sftp-Root-Listing.
+
+### Hetzner Storage Box: SSH ist eine Restricted Shell
+- **Symptom**: `ssh u570556@... "ls -la"` -> `Command not found. Use 'help'`,
+  exit=8. Wirkt wie ein Auth- oder Netzwerkfehler.
+- **Cause**: Ist keiner — die Auth war erfolgreich. Die Box erlaubt nur einen
+  kleinen Befehlssatz (`df` allein geht, `echo`/Verkettungen nicht).
+- **Fix**: fuer alles Echte `rsync`/`sftp -b`/`scp` benutzen oder den
+  vorhandenen SSHFS-Mount auf dem Hosting-Server.
+
