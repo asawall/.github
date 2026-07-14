@@ -4,14 +4,23 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-14 — JetBackup-Verdacht geprueft: FEHLALARM, Backup ist gesund. Der alte
+  mtime von backup/jetbackup (04.05.) war kein Signal — Incremental schreibt in
+  bestehende snap-Slots, jetbackup.index + files*/ sind taeglich frisch (14.07.
+  01:00-01:02), Job-Log meldet "Backup Completed" pro Account. Ich hatte das
+  mtime-Argument selbst als schwach benannt und es trotzdem als Verdacht eskaliert
+  — Lehre in gotchas.md. Nebenbefund: zwei Waisen-Verzeichnisse auf der Box von
+  geloeschten Jobs (25.04./05.04.), nur Platz. Auch aufgefallen:
+  kingdom-ai/diag-hosting-morning.yml prueft die Box mit verketteten Befehlen
+  (ls; echo; ls) — das scheitert an der Restricted Shell, der Workflow liefert
+  dort seit jeher nichts.
 - 2026-07-14 — repo-backup von Actions-Storage auf Storage Box umgezogen. Ziel jetzt
   /mnt/storagebox-nc/repo-backups/YYYYMMDD/repo-backup.tar.gz (Schema wie db-backups),
   Retention 30d offsite + 7d Artifact als Griffbereitschaft. Keine neuen Credentials:
   Runner->Hosting deploy_ed25519, Hosting->Box vorhandener fstab-SSHFS. Live getestet:
   11/11 Repos, 28 MB, byte-identisch verifiziert. Absicherung gegen stille Fehler:
   tar -tzf lokal + mountpoint-Check + remote Groesse UND tar -tzf. OFFEN: 28 GB
-  cpmove-Altlasten in /home/manual-backups (03.05.); backup/jetbackup auf der Box
-  seit 04.05. nicht mehr angefasst — pruefen ob JetBackup die Box noch erreicht.
+  cpmove-Altlasten in /home/manual-backups (03.05.) koennen weg.
 - 2026-07-14 — GitHub Actions Storage bei 90% (1,81/2 GB). Ursache NICHT die Runner:
   Storage != Minuten. 16,6 GB Artifacts gefunden, 274 geloescht -> 1,6 GB. Drei
   Ursachen gefixt: botmatiq/windows-publish (21 Dispatches x 390 MB x 30d = 8,0 GB;
