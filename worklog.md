@@ -4,6 +4,16 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-14 — GitHub Actions Storage bei 90% (1,81/2 GB). Ursache NICHT die Runner:
+  Storage != Minuten. 16,6 GB Artifacts gefunden, 274 geloescht -> 1,6 GB. Drei
+  Ursachen gefixt: botmatiq/windows-publish (21 Dispatches x 390 MB x 30d = 8,0 GB;
+  jetzt 5d + kein Artifact bei Tag-Builds), botmatiq/ci.yml artifacts-Job
+  (205 MB/main-Commit x 30d = 5,2 GB, von cd.yml nie gelesen; jetzt 3d),
+  infra-monitoring/repo-backup (Workspace-Leak + Glob-Bug + verschluckte
+  Clone-Fehler, 90d -> 7d; Steady State waere >100 GB gewesen). Repo-Retention-
+  Policy auf 14d in 10 Repos gesetzt. Minuten unauffaellig: 570/3000 hosted,
+  1231 min frei auf gha-runner-01. OFFEN: Backups gehoeren nicht in Actions-
+  Storage — Ziel Hosting/JetBackup oder Archivcloud entscheiden.
 - 2026-07-11 — Repo-level rollout started: added per-repo CLAUDE.md to `rissfest`
   (verified against the real repo, not memory). Reference implementation of
   CLAUDE_TEMPLATE.md. Remaining active repos: botmatiq, frag-einen-v2, easyarchitekt,
