@@ -64,3 +64,32 @@
 - **Cause**: mailer helper reused without a body on several routes.
 - **Fix**: assert non-empty body in the mailer; covered across all transactional
   routes in rissfest. Watch for the same pattern when adding new routes elsewhere.
+
+### Self-hosted Runner senken den Actions-STORAGE nicht (Kategorienfehler)
+- **Symptom**: "90% der Actions storage" trotz Migration auf gha-runner-01.
+- **Cause**: Runner-Typ betrifft nur **Minuten**. Artifacts + Logs liegen immer auf
+  GitHubs Storage — egal wer den Job ausgefuehrt hat. Getrennte Toepfe:
+  Minuten (self-hosted = 0) vs. Storage (self-hosted = unveraendert).
+  Actions-Cache ist nochmal separat (10 GB/Repo, zaehlt nicht mit).
+  Release-Assets zaehlen NICHT gegen Actions-Storage.
+- **Fix**: `retention-days` an jedem `upload-artifact` + Repo-Policy als Backstop
+  (`PUT /repos/{o}/{r}/actions/permissions/artifact-and-log-retention {"days":14}`).
+  Storage wird als GB-Hours abgerechnet: Loeschen stoppt nur die KUENFTIGE
+  Akkumulation, bereits aufgelaufene GB-Hours bleiben auf der Rechnung.
+  -> bei Storage-Alarm sofort loeschen, nicht "morgen".
+
+### `if cmd | tail` verschluckt jeden Fehler
+- **Symptom**: repo-backup meldete monatelang "alles gruen", auch bei Clone-Fehlern.
+- **Cause**: Exit-Status einer Pipeline = Exit-Status des LETZTEN Glieds (`tail`),
+  nie der von `git clone`. `set -e` hilft hier nicht, `set -o pipefail` waere noetig.
+- **Fix**: Exit direkt pruefen, Output in Logdatei umleiten:
+  `if git clone ... > /tmp/x.log 2>&1; then ... else tail -5 /tmp/x.log; fi`
+
+### Ohne actions/checkout wird $GITHUB_WORKSPACE nie bereinigt
+- **Symptom**: repo-backup-Artifact wuchs exakt linear +25,5 MB/Tag (229 -> 408 MB).
+- **Cause**: Der Job hatte kein `actions/checkout` (das raeumt den Workdir sonst auf).
+  Dateien der Vorlaeufe ueberlebten, und der Upload-Glob `backup-*.tar.gz` sammelte
+  jeden alten Tarball wieder mit ein. "Ephemer" gilt fuer den Runner-Prozess,
+  nicht automatisch fuer den Workspace.
+- **Fix**: explizites `rm -rf` als erster Step + fester Artifact-Dateiname statt Glob.
+
