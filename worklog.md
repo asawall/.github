@@ -4,6 +4,17 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-16 — Kernkette Merseburg repariert (Befunde 1-5, Audit 15.07.): Commits
+  db59472 (Backend) / dec9857 (Handheld-Uebernahme-Hinweis) / e0ff6da (Doku Befund 6
+  = SAT-Pflichtpunkt Shuttle-Retain, wartet auf Servo). Verfahren: KernketteE2ETests
+  erst 6/6 ROT gegen Bestand, dann Fixes, dann 6/6 gruen + Suite 1034/1034.
+  ConfirmItemAsync zieht jetzt Auftrags-Welt transaktional mit (OrderItem PICKED,
+  PickDetails, COMPLETED) -> Vision-Soll-Modell feuert real; AmorV6ReturnDispatcher
+  + RetryService (Outbox PENDING/WRITTEN, Header-JSON am Auftrag persistiert,
+  .E01 byte-geprueft gegen echte 10000014.auf); Ingest idempotent (Dedupe +
+  Unique-Backstop, processed/ ueberschreibt Audit-Kopien nicht mehr);
+  Batch-Uebernahme ohne OperatorId-Filter. windows-publish Run 29436629740 +
+  android-publish Run 29437057795 gruen auf e0ff6da. Deploy-SHA: e0ff6da.
 - 2026-07-15 — OpenAI-Kostenanalyse (Andreas: "15-20 EUR/Tag, fuer 3 Kunden zu viel").
   Befund: **easyArchitekt ist es nicht.** 2 STT-Calls/24h, 4,5 MB Audio/7d,
   gpt-4o-mini + whisper-1 (Defaults, in der .env wird kein Modell ueberschrieben)
