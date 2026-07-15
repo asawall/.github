@@ -237,3 +237,18 @@
   Org `tecmatiq-gmbh`).
 - **Fix**: Pro App ein eigenes OpenAI-Projekt + eigener Key. Dann schluesselt das
   Dashboard von selbst auf, ohne Traffic-Messung. Kostet nichts, dauert Minuten.
+
+### `grep -r` folgt keinen Symlinks — Vhost galt faelschlich als inaktiv
+- **Symptom**: `grep -rlE 'litellm|:4000' /etc/nginx/sites-enabled/` findet nichts.
+  Schluss: "kein Vhost zeigt auf den Dienst, also nicht von aussen erreichbar."
+  Falsch — `private.kingdom-hosting.de` proxyt sehr wohl auf 127.0.0.1:4000.
+- **Cause**: `sites-enabled/` enthaelt ausschliesslich **Symlinks** nach
+  `sites-available/`. `grep -r` steigt in Symlinks NICHT ab (`-R` schon). Der
+  Nullwert war ein Artefakt des Werkzeugs, kein Befund. Zusammen mit dem
+  Loopback-Binding (`127.0.0.1:4000`) ergab das ein falsches Gesamturteil
+  "nicht erreichbar" — dabei ist genau das die normale Reverse-Proxy-Topologie:
+  Dienst auf Loopback + nginx auf 443 davor.
+- **Fix**: Erreichbarkeit NIE aus Port-Bindings + Config-Greps schliessen.
+  Immer `nginx -T` gegen die *laufende* Config:
+  `nginx -T | awk '/server_name/{sn=$0} /127.0.0.1:PORT/{print sn" => "$0}'`.
+  Und fuer Configs unter sites-enabled `grep -R` statt `grep -r`.

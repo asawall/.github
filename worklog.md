@@ -15,8 +15,15 @@
   OpenAI-Traffic von allen Containern. Legacy /v1/usage als Messinstrument
   widerlegt (tot, siehe gotchas). OFFEN fuer Andreas: OpenAI-Admin-Key
   (sk-admin-, Scope api.usage.read) in Vault legen -> dann exakte Zuordnung
-  ueber /v1/organization/costs. Nebenbefund: ai-litellm ist oeffentlich
-  erreichbar und wird aktiv nach PHP-Shells gescannt. diag-once.yml steht auf
+  ueber /v1/organization/costs. Nebenbefund ai-litellm (Einschaetzung zweimal korrigiert): oeffentlich
+  erreichbar via `private.kingdom-hosting.de` (nginx -> 127.0.0.1:4000, ohne
+  auth_basic/allowlist). Aber Auth haelt: LITELLM_MASTER_KEY gesetzt,
+  /v1/*, /model/info, /credentials, /health alle 401. 7d Logs: 2387x 404
+  (generische PHP-Scans), 0 erfolgreiche Fremdzugriffe auf LLM-Endpoints.
+  Offen sind nur / (Swagger-UI), /openapi.json (1,2 MB), /sso/key/generate.
+  Also NICHT akut kritisch — aber unnoetige Angriffsflaeche, weil `main-latest`
+  ungepinnt laeuft und ANTHROPIC_API_KEY + OPENAI_API_KEY im Container haengen:
+  ein Auth-Bypass-CVE reicht. Fix: allowlist/auth_basic im Vhost + NO_DOCS=true. diag-once.yml steht auf
   "Zaehler auslesen", nicht auf noop.
 - 2026-07-15 — easyArchitekt KI-Diktat: unbekannte Firmen waren aus dem Review
   heraus nicht anlegbar. Das Dropdown kannte nur Stammdaten-Firmen, ohne
