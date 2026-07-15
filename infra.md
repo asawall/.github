@@ -161,6 +161,25 @@ Backup layout under that mount:
 - `repo-backups/YYYYMMDD/repo-backup.tar.gz` — `infra-monitoring/repo-backup.yml`
   02:00 UTC, 30 generations (see runbooks.md)
 
+### va-comment-copilot (LinkedIn-Kommentar-Engine) — Sonderfall, kein CI-Deploy
+
+Laeuft auf KAI, aber **nicht** ueber die uebliche CI-Strecke. Stand 15.07.2026:
+
+| Was | Wo |
+|---|---|
+| Source | `/opt/va-comment-copilot` auf KAI (von Hand deployt) |
+| Container | `va-copilot-backend`, Image `va-comment-copilot-backend:local` |
+| Compose | `docker-compose.prod.yml` (nicht `backend/docker-compose.yml`) |
+| Port | `127.0.0.1:8088` via docker-proxy, nginx-Vhost `copilot.kingdom-hosting.de` |
+| Secrets | `/opt/va-comment-copilot/.env` (ANTHROPIC_API_KEY, COPILOT_SHARED_SECRET) |
+| Digest-Cron | `/etc/cron.d/va-discovery` -> `discovery/discover.py` -> `POST /draft` -> Telegram |
+| Digest-State | `discovery/seen.json` (Dedup, untracked) |
+
+**Repo hat 0 Runner und keine `VAULT_CLIENT_ID/SECRET`-Secrets.** `deploy.yml` ist
+dispatch-only und zielt auf ein nicht existierendes Runner-Label. Push auf main
+deployt nichts — nur `ci.yml` (github-hosted) laeuft. Deploy-Weg bis Runner +
+Secrets existieren: One-shot aus `infra-monitoring`, Details in gotchas.md.
+
 ### Repository Variables (central, available as `${{ vars.NAME }}` in all repos)
 
 | Variable | Value |

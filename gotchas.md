@@ -103,6 +103,43 @@
   `rsync` mit `< /dev/null`. **Aber**: wenn ein Aufruf selbst einen Heredoc
   bekommen soll, darf er KEIN `-n` haben — dann kaeme nichts an.
 
+### Content-Regel gilt nur in EINER Pipeline, die Schwester-Pipeline kennt sie nicht
+- **Symptom**: Andreas' realer Ex-Arbeitgeber (Hilti) stand monatelang in jedem
+  zweiten LinkedIn-Kommentar-Entwurf im Telegram-Digest — obwohl die Regel
+  "reale Ex-Arbeitgeber = SOFORT FAIL" laengst existierte.
+- **Cause**: Die Regel lebte nur in der POST-Pipeline (`linkedin-phase2`:
+  `content_generator.py` + `fact_validator.py`). Die KOMMENTAR-Pipeline
+  (`va-comment-copilot`: `backend/main.py`) ist ein eigenes Repo, hat einen
+  eigenen Voice-Prompt — und nannte Hilti dort sogar aktiv als Persona-Fakt.
+  Zwei Systeme, eine Marke, eine Stimme, aber nur ein Regelwerk gepflegt.
+- **Fix**: Voice-/Content-Regeln gelten fuer die MARKE, nicht fuer ein Repo. Wird
+  eine Regel in einer Pipeline geaendert, immer pruefen: wer erzeugt sonst noch
+  Text unter demselben Namen? Aktuell: `linkedin-phase2` (Posts),
+  `va-comment-copilot` (Kommentare), `sape-control-plane/pipeline/content_exec.py`
+  (autonomer Content), `profiles/vertriebsarchitekt.json` (Outreach-Sequenzen).
+- **Zusatz**: Prompt-Regel allein reicht nie, wenn der FREMDE Input den verbotenen
+  Begriff enthaelt — das Modell spiegelt ihn dann. Deterministischer Output-Guard
+  noetig (gleiche Lehre wie beim Umlaut-Guard). Seit 15.07.2026:
+  `enforce_no_employers()` in `va-comment-copilot/backend/main.py`, Regex ->
+  Haiku-Rewrite -> harter Drop, live gegen einen Hilti-nennenden Post verifiziert.
+
+### `git push` auf va-comment-copilot deployt NICHT
+- **Symptom**: Fix ist auf `main`, CI gruen — der Digest am naechsten Morgen zeigt
+  trotzdem das alte Verhalten.
+- **Cause**: Zwei Dinge gleichzeitig. (1) `deploy.yml` hat NUR
+  `on: workflow_dispatch` — der Kommentar direkt darueber behauptet faelschlich
+  "push auf main / dispatch". (2) Das Repo hat NULL registrierte Runner, aber
+  `runs-on: [self-hosted, linux, va-comment-copilot]` — ein Dispatch haengt ewig.
+  Zusaetzlich fehlen die Repo-Secrets `VAULT_CLIENT_ID/SECRET` (der PAT darf keine
+  Secrets schreiben — bewusst). Das Backend auf KAI wurde nie ueber CI deployt.
+- **Fix**: Bis Runner + Secrets existieren, Deploy per One-shot-Workflow aus
+  `infra-monitoring` (hat Runner + Vault-Secrets): Source dort auschecken, als
+  tar-Stream nach KAI, `docker compose -f docker-compose.prod.yml up -d --build`.
+  `.env` (ANTHROPIC_API_KEY + COPILOT_SHARED_SECRET) und `discovery/seen.json`
+  vom tar ausschliessen, sonst sind Key und Digest-Dedup-State weg.
+  KEINEN Push-Trigger in `deploy.yml` ergaenzen, solange kein Runner existiert —
+  das produziert nur ewig haengende Jobs.
+
 ### /mnt/storagebox-nc ist nicht der Storage-Box-Root
 - **Symptom**: `sftp ls` auf der Box zeigt `nextcloud-data`, aber kein
   `db-backups` — obwohl Workflows erfolgreich `/mnt/storagebox-nc/db-backups`
