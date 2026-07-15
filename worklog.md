@@ -4,6 +4,20 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-15 — OpenAI-Kostenanalyse (Andreas: "15-20 EUR/Tag, fuer 3 Kunden zu viel").
+  Befund: **easyArchitekt ist es nicht.** 2 STT-Calls/24h, 4,5 MB Audio/7d,
+  gpt-4o-mini + whisper-1 (Defaults, in der .env wird kein Modell ueberschrieben)
+  -> real ~0,02-0,05 USD/Tag. Alle AI-Pfade sind user-getriggert, kein Cron, der
+  AiProcessor wird nirgends enqueued (toter Code). Anthropic gesamt via Admin-API:
+  ~5 USD/Tag (7d), Peak 13.07. = 14,42 USD — nicht 1442, siehe Cent-Gotcha, den
+  Fehlalarm habe ich selbst fast rausgeschickt. Auf KAI iptables-Accounting
+  (Chain OAI_ACCT in DOCKER-USER, reine Zaehler) gesetzt: in 10 min 0 Bytes
+  OpenAI-Traffic von allen Containern. Legacy /v1/usage als Messinstrument
+  widerlegt (tot, siehe gotchas). OFFEN fuer Andreas: OpenAI-Admin-Key
+  (sk-admin-, Scope api.usage.read) in Vault legen -> dann exakte Zuordnung
+  ueber /v1/organization/costs. Nebenbefund: ai-litellm ist oeffentlich
+  erreichbar und wird aktiv nach PHP-Shells gescannt. diag-once.yml steht auf
+  "Zaehler auslesen", nicht auf noop.
 - 2026-07-15 — easyArchitekt KI-Diktat: unbekannte Firmen waren aus dem Review
   heraus nicht anlegbar. Das Dropdown kannte nur Stammdaten-Firmen, ohne
   companyId filterte apply() den Gewerk-Eintrag still weg — Andreas' Diktat

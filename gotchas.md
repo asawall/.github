@@ -202,3 +202,38 @@
   verwirft, ist das ein Bug, kein Filter — entweder Weg anbieten oder sichtbar
   machen, dass etwas faellt.
 
+
+### Anthropic cost_report `amount` ist in CENT, nicht USD — trotz `"currency":"USD"`
+- **Symptom**: `/v1/organizations/cost_report` meldet 1442.48 fuer einen Tag. Sieht aus
+  wie eine Kostenexplosion auf 1.442 USD/Tag. Ich war eine Minute davon entfernt,
+  Andreas einen 460-EUR/Tag-Notfall zu melden, den es nicht gibt.
+- **Cause**: Das Feld `amount` kommt in Minor Units (Cent). Das `currency`-Feld sagt
+  trotzdem "USD". Real waren es 14,42 USD.
+- **Fix**: `amount / 100` rechnen. **Immer gegenrechnen**, bevor eine Kostenzahl
+  eskaliert wird: `usage_report/messages` (Tokens) x Listenpreis muss zum
+  `cost_report` passen. Verifiziert 15.07.2026 an drei Tagen unabhaengig, Verhaeltnis
+  exakt 100.0. Generelle Lehre: eine Zahl, die 100x groesser ist als die Erwartung,
+  ist meistens eine Einheit, kein Ereignis.
+
+### OpenAI Legacy `/v1/usage?date=` ist tot — antwortet 200 mit leerem `data`
+- **Symptom**: `/v1/usage?date=YYYY-MM-DD` liefert HTTP 200 und `"data": []` fuer
+  jeden Tag. Sieht aus wie der Beweis, dass ein Projekt nichts verbraucht hat.
+- **Cause**: Der Endpoint wird nicht mehr befuellt. Er ist deprecated, gibt aber
+  keinen Fehler zurueck — nur Leere. Ein stiller Nullwert ist kein Messwert.
+- **Fix**: Gegentest, bevor man einem Nullwert glaubt: einen echten Call absetzen
+  (`max_tokens:1`, ~0,00001 USD) und pruefen, ob er in der Statistik auftaucht.
+  Tat er nicht -> Instrument unbrauchbar. Kosten nur ueber
+  `/v1/organization/costs` (braucht **Admin-Key** `sk-admin-...`, Scope
+  `api.usage.read`) messen. Ein `sk-proj-...`-Key bekommt dort 403.
+
+### Ein OpenAI-Key ueber alle Apps = keine Kostenzuordnung moeglich
+- **Symptom**: "Die OpenAI-Rechnung steigt, welche App ist es?" ist mit dem
+  Dashboard nicht beantwortbar.
+- **Cause**: `tecmatiq/prod/providers/OPENAI_API_KEY` wird bewusst geteilt
+  (Kommentar in easyarchitekt `deploy.yml`). Stand 15.07.2026 haengen daran:
+  ea_api, ea_api_staging, rissfest-web, va-n8n, vertriebsarchitekt. Zusaetzlich
+  laufen zwei eigene Keys auf KAI (kingdom-backend, ai-litellm). Alle Kosten
+  landen in einem einzigen OpenAI-Projekt (`proj_rUF6r9c2FssD0g85rLv42PvC`,
+  Org `tecmatiq-gmbh`).
+- **Fix**: Pro App ein eigenes OpenAI-Projekt + eigener Key. Dann schluesselt das
+  Dashboard von selbst auf, ohne Traffic-Messung. Kostet nichts, dauert Minuten.
