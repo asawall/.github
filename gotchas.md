@@ -177,3 +177,28 @@
   (05.04.) gehoeren zu keinem aktiven Job mehr — JetBackup raeumt Destination-Daten
   beim Loeschen eines Jobs nicht auf. Nur Platz, kein Fehler.
 
+### Fremd-IDs aus dem Request-Body landen ungeprueft in Relationen
+- **Symptom**: keins. Faellt nie auf, bis jemand es ausnutzt — ein POST mit einer
+  contactId/companyId aus einer anderen Org haengt die Relation klaglos an.
+- **Cause**: der Endpunkt prueft die Ressource selbst (`assert(orgId, id)`), aber
+  nicht die IDs, die im Body mitkommen. In easyArchitekt betraf das
+  BegehungPerson.contactId/companyId an drei Schreibpfaden (create, addPerson,
+  aiApply) — die Firmen-IDs von Gewerk/Mangel/Abstimmung waren geprueft, die der
+  Teilnehmer nicht. Klassische Luecke: die Prueflogik wurde pro Feature
+  geschrieben statt pro Schreibpfad.
+- **Fix**: eine `assertPersonRefs`-artige Methode pro Entitaet, durch die JEDER
+  Schreibpfad geht — nicht die Pruefung im gerade angefassten Endpunkt
+  nachziehen. `deletedAt: null` mitpruefen. Beim Review neuer Endpunkte: jede ID
+  im Body ist ungeprueft, bis das Gegenteil im Code steht.
+
+### KI-Review verwirft Eintraege still, wenn die Stammdaten fehlen
+- **Symptom**: Diktat nennt eine Firma, das Review zeigt sie an ("Erkannt: …"),
+  nach "Uebernehmen" ist der Eintrag weg. Keine Fehlermeldung.
+- **Cause**: das Frontend filtert Items ohne aufgeloeste `companyId` vor dem
+  Absenden raus. Der Resolver kann aber nur matchen, was schon in den Stammdaten
+  steht — und aus dem Review fuehrte kein Weg dorthin.
+- **Fix**: jeder Review-Screen, der gegen Stammdaten aufloest, braucht einen
+  Anlege-Weg im selben Screen. Generell: wenn eine Pipeline Items still
+  verwirft, ist das ein Bug, kein Filter — entweder Weg anbieten oder sichtbar
+  machen, dass etwas faellt.
+

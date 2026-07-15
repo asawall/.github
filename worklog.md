@@ -4,6 +4,18 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-15 — easyArchitekt KI-Diktat: unbekannte Firmen waren aus dem Review
+  heraus nicht anlegbar. Das Dropdown kannte nur Stammdaten-Firmen, ohne
+  companyId filterte apply() den Gewerk-Eintrag still weg — Andreas' Diktat
+  verlor Eintraege ohne Fehlermeldung. Fix: CompanyQuickCreate-/
+  ContactQuickCreate-Dialoge direkt im Review, "+ Neue Firma anlegen" in allen
+  drei Firmen-Selects, Dubletten-Warnung, Auto-Zuweisung an alle Items mit
+  demselben erkannten Namen. Nebenbefund beim Validieren: contactId/companyId
+  gingen roh aus dem Body in BegehungPerson (create, addPerson, aiApply) —
+  org-fremde Relationen waren setzbar, jetzt in assertPersonRefs() gebuendelt.
+  Beides auf `staging` deployt (2 Runs gruen), main wartet auf Andreas' Freigabe.
+  Nebenbei: `staging` hing hinter `main` (Blog fehlte) — main gemergt, damit der
+  Zwilling wieder einer ist.
 - 2026-07-15 — Hilti fliegt aus der LinkedIn-Kommentar-Engine. Ursache war nicht
   das Modell, sondern der Persona-Block in `va-comment-copilot/backend/main.py`
   ("langjaehrige Karriere bei Hilti") — das Modell nutzte den Namen folgerichtig
