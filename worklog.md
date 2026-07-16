@@ -14,9 +14,10 @@
   .env (AddJsonFile NACH AddEnvironmentVariables) -> Env-Re-Add, .env ist wieder
   hoechste Quelle (Montag-CloudSync-Toggle haette sonst nicht funktioniert). Ingest
   ueberlebt jetzt fehlenden Klinik-Share (Setup-Retry, Test 7). Deploy-Stand IPC:
-  0.0.69 / 09515e2, Suite 1035/1035. Offen: AMOR-Gegentest (Split-Semantik!),
-  Backup-Task-Install, Demo-Seeds vor SAT bereinigen, Werkstatt-.env-Override ->
-  Schalter-Blatt.
+  0.0.69 / 09515e2, Suite 1035/1035. Backup-Task installiert + Probe OK (BOM-Fix
+  d0192f5: Backup-Skript war UTF-8 ohne BOM -> PS-5.1-Parser-Crash). Offen:
+  AMOR-Gegentest (Split-Semantik!), Demo-Seeds vor SAT bereinigen,
+  Werkstatt-.env-Override -> Schalter-Blatt.
 - 2026-07-16 — Actions-Storage zweiter Ueberlauf (7,51 GB / 2 GB) geloest, diesmal
   strukturell: Ursache war ci.yml Job 8 `artifacts` — pro main-Push ~230 MB
   (backend 206 self-contained + apk 17 + frontend 2), von keinem Workflow
