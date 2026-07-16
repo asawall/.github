@@ -4,6 +4,19 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-16 — Actions-Storage zweiter Ueberlauf (7,51 GB / 2 GB) geloest, diesmal
+  strukturell: Ursache war ci.yml Job 8 `artifacts` — pro main-Push ~230 MB
+  (backend 206 self-contained + apk 17 + frontend 2), von keinem Workflow
+  konsumiert (cd.yml = git pull, IPC-Wrapper = windows-publish per $ShaPrefix).
+  Der 14.07.-Retention-Fix konnte das bei 10-15 Commits/Tag nicht halten.
+  Fix (botmatiq a5bbc75): artifacts-Job nur noch workflow_dispatch mit
+  publish_bundle=true; retention-days explizit in JEDEM Upload (1/3/5, trivy 14);
+  NEU cleanup-artifacts.yml (Mo 05:00 UTC scharf, dispatch dry_run, schuetzt
+  Tag-Builds + PROTECTED_RUN_IDS + juengstes je Namensklasse+Branch, paginiert,
+  Retry). Danach 194 Artifacts / 6,47 GB per API geloescht (Invarianten-Check
+  vorab: Deploy-Staende e0ff6da + 218606f-Fallback, handheld-apk 2878d62
+  Wochenplan-Pin 21.07. alle in KEEP). Stand: 20 Artifacts / 1,04 GB.
+  Offen fuer Andreas: Repo-Default-Retention 14d -> 7d (nur UI, keine API).
 - 2026-07-16 — Kernkette Merseburg repariert (Befunde 1-5, Audit 15.07.): Commits
   db59472 (Backend) / dec9857 (Handheld-Uebernahme-Hinweis) / e0ff6da (Doku Befund 6
   = SAT-Pflichtpunkt Shuttle-Retain, wartet auf Servo). Verfahren: KernketteE2ETests
