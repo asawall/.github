@@ -252,3 +252,11 @@
   Immer `nginx -T` gegen die *laufende* Config:
   `nginx -T | awk '/server_name/{sn=$0} /127.0.0.1:PORT/{print sn" => "$0}'`.
   Und fuer Configs unter sites-enabled `grep -R` statt `grep -r`.
+
+## str_replace: Anhaengen ans Klassen-/Dateiende
+Beim Einfuegen neuer Methoden/Tests am Ende einer Klasse darf old_str NICHT
+das schliessende Methoden-Ende des Vorgaengers enthalten — sonst wird es
+mitgeloescht und die Klammerstruktur zerfaellt (16.07.2026 zweimal dieselbe
+Testklasse zerlegt: CS0106/CS1513). Muster: als Anker den letzten
+INHALTS-Block des Vorgaengers + dessen komplettes Ende in old_str UND new_str
+identisch mitfuehren, oder per Python-Insert mit assert count==1 arbeiten.
