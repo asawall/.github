@@ -17,7 +17,15 @@
   0.0.69 / 09515e2, Suite 1035/1035. Backup-Task installiert + Probe OK (BOM-Fix
   d0192f5: Backup-Skript war UTF-8 ohne BOM -> PS-5.1-Parser-Crash). Offen:
   AMOR-Gegentest (Split-Semantik!), Demo-Seeds vor SAT bereinigen,
-  Werkstatt-.env-Override -> Schalter-Blatt.
+  Werkstatt-.env-Override -> Schalter-Blatt. NACHMITTAG (autonom,
+  Andreas abwesend): Positions-Storno O1 komplett (78fbffc): POST /handheld/skip
+  + SkipItemAsync (Tx, PickDetail-Audit, FC-1-Rueckmeldung); Dispatcher-
+  CANCELLED-Filter entfernt (haette beim Voll-Storno die Fehlmenge verschluckt,
+  rot bewiesen); Batch/Order-done via Endzustands-Zaehlung; Tests Voll-Storno
+  + Split-Mix, Suite 1037/1037, CI gruen. Doku STORNO_MINDERABGABE.md +
+  IBN_UMSCHALTPUNKTE_MERSEBURG.md. Wrapper-Logpfad-Fix fd01317 (Wrapper
+  aktualisiert sich NICHT uebers Bundle -> einmal manuell auf IPC kopieren).
+  Handheld-Storno-UI wartet auf Felde-Antwort. Kein Deploy — Montag mit Andreas.
 - 2026-07-16 — Actions-Storage zweiter Ueberlauf (7,51 GB / 2 GB) geloest, diesmal
   strukturell: Ursache war ci.yml Job 8 `artifacts` — pro main-Push ~230 MB
   (backend 206 self-contained + apk 17 + frontend 2), von keinem Workflow
