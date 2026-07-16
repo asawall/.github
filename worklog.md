@@ -4,6 +4,19 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-16 — Kernkette LIVE auf Merseburg-IPC verifiziert: echte 10000014.auf ->
+  Ingest -> Split auf 2 Behaelter (echte Artikelmasse!) -> 2 Batches -> COMPLETED ->
+  .E01+.E02 (Behaelterfolge 1/2+2/2, Wannen 4711/4712, Teil- und Gesamtmengen korrekt)
+  + AutoBelege. Drei Deploys dafuer noetig, drei neue Befunde gefixt: (a) Watchdog-Task
+  killte robocopy (FEHLER 32) -> Apply v2 pausiert Task + trap + /LOG + Prozess-Wait;
+  (b) Serilog + 7 weitere relative data/-Defaults schrieben nach System32 (Dienst-CWD)
+  -> AppContext.BaseDirectory + shared:true; (c) appsettings.{tenant}.json ueberschrieb
+  .env (AddJsonFile NACH AddEnvironmentVariables) -> Env-Re-Add, .env ist wieder
+  hoechste Quelle (Montag-CloudSync-Toggle haette sonst nicht funktioniert). Ingest
+  ueberlebt jetzt fehlenden Klinik-Share (Setup-Retry, Test 7). Deploy-Stand IPC:
+  0.0.69 / 09515e2, Suite 1035/1035. Offen: AMOR-Gegentest (Split-Semantik!),
+  Backup-Task-Install, Demo-Seeds vor SAT bereinigen, Werkstatt-.env-Override ->
+  Schalter-Blatt.
 - 2026-07-16 — Actions-Storage zweiter Ueberlauf (7,51 GB / 2 GB) geloest, diesmal
   strukturell: Ursache war ci.yml Job 8 `artifacts` — pro main-Push ~230 MB
   (backend 206 self-contained + apk 17 + frontend 2), von keinem Workflow
