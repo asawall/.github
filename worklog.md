@@ -137,3 +137,20 @@
   into index + regeln.md / infra.md / gotchas.md / worklog.md / runbooks.md +
   CLAUDE_TEMPLATE.md. Killed the second (drifted) `.github/CLAUDE.md`. Boundary set:
   native memory = top-of-mind only, Git files = authoritative.
+- 2026-07-18 — Leadgen/Mail-Diagnose (Rissfest+easyArchitekt): Root causes: (1)
+  approvals-poller tot seit 06.07. (Telegram 409 — AUTOSAPE-Bot hat Webhook auf
+  n8n automation.vertriebsarchitekt.eu/webhook/tq-telegram-cmd; getUpdates damit
+  unmöglich), (2) ea_mailserver down seit Docker-Restart 17.07. 04:06 (state- UND
+  config-Bind-Mounts /opt/easyarchitekt/infra/mail/{state,config} geleert →
+  Postfix-Symlinks tot, keine Accounts), (3) vertriebsarchitekt-outreach Cron-Key
+  falsch seit 08.07. (nie getickt) — gefixt, (4) IP 46.224.164.200 bei t-online
+  (DIAL) + Proofpoint geblockt, (5) post.frag-einen.com ohne DNS + fehlt in
+  va-mail ALLOWED_SENDER_DOMAINS. Fixes: ea_mailserver recreatet (Image-Pin
+  15.1.0, Host-Ports 25/465/587 raus — Konflikt mit rissfest-mail, rissfest-net
+  in Compose persistiert), Account alexander.graf@ + 4 Aliase restauriert, IMAPS
+  wieder ok; Compose-Fix in asawall/easyarchitekt committed (1d35e532).
+  INCIDENT dabei: postqueue -f während ea_mailserver-DNS unauflösbar → 15
+  gestaute Inbound-Mails (13.-18.07.) permanent gebounced (5.4.4) statt weiter
+  deferred. Absenderliste extrahiert (u.a. sieckmannwalther.de,
+  telluride-architektur.de). Rissfest-Machine selbst gesund (Sa = geplante
+  Sendepause).
