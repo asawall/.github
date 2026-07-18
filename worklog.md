@@ -154,3 +154,17 @@
   deferred. Absenderliste extrahiert (u.a. sieckmannwalther.de,
   telluride-architektur.de). Rissfest-Machine selbst gesund (Sa = geplante
   Sendepause).
+- 2026-07-18 (2) — Autonome Umsetzung nach Diagnose: MX post.frag-einen.com
+  angelegt (Zone 823150; SPF/DMARC existierten, nur MX fehlte -> Ursache der
+  450 "Domain not found"). post.frag-einen.com in va-mail
+  /etc/postfix/allowed_senders + Compose-Env ergaenzt (allowlist_sender-Muster,
+  KEIN Recreate). 98 approvte lead_candidates aus state.db in Outreach-DBs
+  importiert (ea +27, ledgura +38, kingdomhosting +33, status=ready, Suppression
+  beachtet) — Rest der 232 approved hatte keine Mail-Adresse. TICK_KEYs aller 5
+  Outreach-Container rotiert (Env+Recreate+Cron, verify 200/401).
+  deploy-timers.yml um leadgen erweitert (Units lagen schon im Repo, waren nur
+  nicht verdrahtet). t-online-Freischaltungsentwurf + Proofpoint-Anleitung an
+  Andreas (reCAPTCHA -> manuell). approvals-poller BEWUSST nicht gestartet:
+  AUTOSAPE-Webhook zeigt auf aktiven n8n-Flow tq-telegram-cmd (POST 200) —
+  Entscheidung neuer Bot vs. Webhook liegt bei Andreas; Dashboard-Approvals
+  funktionieren unabhaengig.
