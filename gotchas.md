@@ -260,3 +260,34 @@ mitgeloescht und die Klammerstruktur zerfaellt (16.07.2026 zweimal dieselbe
 Testklasse zerlegt: CS0106/CS1513). Muster: als Anker den letzten
 INHALTS-Block des Vorgaengers + dessen komplettes Ende in old_str UND new_str
 identisch mitfuehren, oder per Python-Insert mit assert count==1 arbeiten.
+
+## docker-mailserver (ea_mailserver): Bind-Mount-Quellen weg = Zeitbombe
+Am 12.07. wurden /opt/easyarchitekt/infra/mail/{state,config} geleert (vermutl.
+Checkout/Clean); der laufende Container ueberlebte das mit offenen FDs. Erst der
+Docker-Daemon-Restart 17.07. 04:06 machte es manifest: Postfix-Symlinks nach
+/var/mail-state tot, postfix-accounts.cf weg -> "no accounts, Dovecot shutdown"-
+Loop. **Fix-Muster**: force-recreate (Init migriert state neu) + Account/Aliase
+via `setup email add` / `setup alias add` restaurieren (Passwort steht in
+ea-outreach-Env IMAP_PASS). data/ (Maildirs) lag separat und ueberlebte.
+
+## ea_mailserver Netz-Membership war nur manuell
+Der alte Container hing per manuellem `docker network connect` im rissfest-net —
+ein Recreate verliert das, rissfest-mail kann "ea_mailserver" dann nicht mehr
+aufloesen. Seit 18.07. in docker-compose.mail.yml persistiert (networks:
+rissfestnet external, name rissfest-net). Host-Port 25 gehoert rissfest-mail
+(Inbound-Gateway, relayt intern an ea_mailserver); ea_mailserver darf
+25/465/587 NICHT publishen.
+
+## postqueue -f NIE bei unaufloesbarem Zielhost
+Solange der Relay-/Zielhost per DNS nicht aufloesbar ist, wird aus deferred
+(4.4.1, wird retried) beim Flush ein permanenter Bounce (5.4.4 Host not found).
+Am 18.07. so 15 gestaute Inbound-Mails verloren. Reihenfolge immer: Zielhost
+erreichbar machen -> Banner-Test (`nc host 25`) -> DANN `postqueue -f`.
+
+## Compose-Drift /opt/easyarchitekt/infra/compose
+docker-compose.mail.yml wurde am 12.07. geaendert (Image 14.0, Host-Ports) aber
+nie angewendet; der Container lief noch auf der alten Definition (15.1.0, keine
+Host-Ports, manuelles Netz). Ein spaeteres `up --force-recreate` wendet die
+Datei ERSTMALS an und bricht dann an GHCR-denied (14.0 nicht lokal) und
+Port-25-Konflikt. Vor jedem Recreate: `docker inspect` (Image, Ports, Netze)
+gegen Compose-Datei diffen.
