@@ -291,3 +291,20 @@ Host-Ports, manuelles Netz). Ein spaeteres `up --force-recreate` wendet die
 Datei ERSTMALS an und bricht dann an GHCR-denied (14.0 nicht lokal) und
 Port-25-Konflikt. Vor jedem Recreate: `docker inspect` (Image, Ports, Netze)
 gegen Compose-Datei diffen.
+
+### kingdom-ai.service failt bei JEDEM Boot (Race mit restart-policies)
+- **Symptom**: nach Reboot 1 failed unit auf KAI (`kingdom-ai.service`), Stack laeuft
+  scheinbar trotzdem. Real: 6 Fehlboots in Folge, und `kingdom-redis` fehlte dadurch
+  KOMPLETT — die Unit stirbt am Namenskonflikt, BEVOR sie redis erzeugt, und redis
+  hatte keinen Alt-Container mit restart-policy, der ihn zurueckbringt.
+- **Cause**: doppelte Lifecycle-Verwaltung. Alle Container laufen mit
+  `restart=unless-stopped` UND ein oneshot-Unit macht beim Boot
+  `docker compose up -d`. dockerd restauriert die Alt-Container parallel ->
+  compose kollidiert am Namen `kingdom-postgres` -> Exit 1.
+- **Fix (2026-07-19)**: `docker compose up -d --no-deps redis` (neu, unless-stopped,
+  healthy), danach `systemctl reset-failed kingdom-ai.service`. Struktur offen:
+  Empfehlung = Unit disablen (restart-policies decken den Boot ab; das
+  `ExecStop=compose down` hat nie gegriffen, weil die Unit nie aktiv wurde).
+  Alternative = Stack einmalig unter das Compose-Projekt recreaten und
+  restart-policies entfernen. Postgres-Daten liegen im Named Volume
+  `kingdom-postgres-data` — ein Recreate waere datensicher.

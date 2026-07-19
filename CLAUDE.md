@@ -69,7 +69,7 @@ pattern (Vault login → pull secret → GitHub push recovery) is in `infra.md`.
 | Server | IP | Role |
 |--------|------|------|
 | KAI | 46.224.164.200 | main workspace + apps + Vault |
-| Botmatiq | 5.9.112.153 | DSGVO-isolated Botmatiq only |
+| Botmatiq | 49.13.142.247 | DSGVO-isolated Botmatiq only |
 | Hosting | 88.99.195.89 | cPanel + JetBackup |
 | gha-runner-01 | 178.104.211.135 | 15 ephemeral GHA runners |
 

@@ -135,7 +135,7 @@ Other reusable workflows in this repo (see README.md): `docker-build-push.yml`,
 | Server | IP | Role |
 |--------|------|------|
 | KAI (KingdomAI) | 46.224.164.200 | Main workspace + apps + Vault + ai-stack |
-| Botmatiq | 5.9.112.153 | DSGVO-isolated Botmatiq only |
+| Botmatiq | 49.13.142.247 | DSGVO-isolated Botmatiq only |
 | Hosting | 88.99.195.89 | cPanel + JetBackup + Wissenscloud |
 | gha-runner-01 | 178.104.211.135 | 15 ephemeral GHA runners |
 
@@ -185,9 +185,14 @@ Secrets existieren: One-shot aus `infra-monitoring`, Details in gotchas.md.
 | Variable | Value |
 |---|---|
 | `KAI_HOST` / `KAI_USER` | 46.224.164.200 / root |
-| `BOTMATIQ_HOST` / `BOTMATIQ_USER` | 5.9.112.153 / botadmin |
+| `BOTMATIQ_HOST` / `BOTMATIQ_USER` | 49.13.142.247 / botadmin |
 | `CPANEL_HOST` / `CPANEL_USER` | 88.99.195.89 / root |
 | `GHA_RUNNER_HOST` / `GHA_RUNNER_USER` | 178.104.211.135 / gha |
+
+Live-Wert der GH-Variable `BOTMATIQ_HOST` ist per API nicht pruefbar (PAT hat
+keine Variables-Permission, 403). Tabelle oben = Soll-Wert 49.13.142.247;
+bei Workflow-Fehlern gegen Botmatiq zuerst die Variable in der UI checken.
+`auto-patch-daily.yml` hardcodet die IPs und ist davon unabhaengig.
 
 ---
 

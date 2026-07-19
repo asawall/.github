@@ -4,6 +4,7 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-19 — Kernel-Reboot KAI+Botmatiq (6.8.0-134->136) per One-shot aus kingdom-ai: beide gruen (KAI 82->83 Container, nginx aktiv/caddy disabled, Vault+rissfest 200; Botmatiq 11/11, test.botmatiq.de 200). Befund: kingdom-ai.service Boot-Race (6 Fehlboots), kingdom-redis fehlte komplett -> wiederhergestellt, reset-failed, Gotcha dokumentiert. Botmatiq-IP in Doku auf 49.13.142.247 korrigiert (alt 5.9.112.153, DNS bestaetigt). One-shot geloescht.
 - 2026-07-19 — tender-watch live auf KAI (09bda02): taeglicher Scan TED+Bekanntmachungsservice auf Steuerungs-/Retrofit-Ausschreibungen -> Telegram; Erstlauf 65 aktive Treffer (u.a. Ruhrwehr Raffelberg Frist 30.07., WW Hermentingen/Zollernalb, IWES Leuna). Recherche-Basis: TED-API-Expertsyntax + DOEE-OCDS-Exporte (503-throttled, Retry-Design). Units via deploy-timers.yml, manueller Trigger tender-watch-once.yml.
 - 2026-07-16 — Kernkette LIVE auf Merseburg-IPC verifiziert: echte 10000014.auf ->
   Ingest -> Split auf 2 Behaelter (echte Artikelmasse!) -> 2 Batches -> COMPLETED ->
