@@ -55,3 +55,21 @@ einem Glob-Bug, der jeden Vorlauf-Tarball wieder einsammelte. Steady State waere
 >100 GB gewesen (~25 USD/Monat). Ausserdem lag die einzige Kopie an genau dem
 System, dessen Ausfall sie abfedern soll.
 
+
+## tender-watch (Ausschreibungs-Scanner, KAI)
+Taeglicher Scan auf Steuerungs-/Retrofit-Ausschreibungen (Beckhoff-Angle):
+TED-API v3 (DEU+AUT, nur offene Angebotsfristen) + Bekanntmachungsservice
+oeffentlichevergabe.de (nationale eForms-DE, OCDS-Tagesexporte, 503-tolerant mit
+Retry + Nachholen bis 7 Tage). Treffer -> Telegram (AutoSaPe -> Andreas), stumm
+wenn nichts Neues. Dedup-State `/var/lib/tender-watch/seen.json`.
+- Source: `sape-control-plane/cockpit/orchestrator/pipeline/tender_watch.py`
+  (stdlib-only, kein LLM, 0 API-Kosten ausser HTTP)
+- Units: `deploy/tender-watch.{service,timer}` -> installiert via `deploy-timers.yml`;
+  Timer 05:15 UTC, Persistent, self-updating (ExecStartPre git pull)
+- Secrets: `/etc/sape-orchestrator/vault-creds.env` (wie Orchestrator) ->
+  TELEGRAM_BOT_TOKEN_AUTOSAPE + TELEGRAM_CHAT_ID zur Laufzeit aus Vault
+- Manueller Lauf: Workflow `tender-watch-once.yml` (mode=test erzwingt
+  Status-Message auch bei 0 Treffern; mode=run = wie Timer)
+- Keyword-Profil in `TED_KEYWORDS` + `KW_RE`/`NEG_RE` im Skript; bei zu viel
+  Rauschen dort nachschaerfen (Kandidaten: "Leittechnik", "EMSR" breit)
+- Check: `systemctl list-timers tender-watch.timer`; `journalctl -u tender-watch.service`
