@@ -170,3 +170,16 @@
   AUTOSAPE-Webhook zeigt auf aktiven n8n-Flow tq-telegram-cmd (POST 200) —
   Entscheidung neuer Bot vs. Webhook liegt bei Andreas; Dashboard-Approvals
   funktionieren unabhaengig.
+- 2026-07-19 — Botmatiq Pre-IBN-Restarbeiten autonom: Vision-Bug-Trio
+  (OnvifSnapshotClient Digest/Alias/Vendor) im Repo als bereits gefixt+getestet
+  verifiziert (OnvifCredentialStore + DigestOnlyServer-Integrationstest) —
+  Memory war stale. Einziger echter Code-Restpunkt umgesetzt: Multi-Band-
+  Randfall Chargen-Verdikt (Capture Band 2 bestätigte Charge derselben Order
+  auf Band 3). Fix d07e64c: vision_captures.BeltId nullable additiv
+  (ddlStatements-Pfad), CaptureProcessor + reconcile/test setzen BeltId,
+  ComputeAsync filtert bandscharf (null=Altbestand bandagnostisch),
+  vision:capture-Payload +beltId, 5 neue Tests, Suite 1054/1054, Spec_Addendum.
+  windows-publish Bundle mit Fix gebaut (botmatiq-backend-win-x64, Run
+  29677885013) — liegt fuer Mo-Deploy bereit. Cloud-Ingest-Negativprobe:
+  whoami/stats 401 ohne+mit Fake-Token, health public by design. Hinweis:
+  Dependabot meldet 7 vulns (2 high) auf main — vor Feature-Freeze sichten.
