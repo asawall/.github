@@ -465,3 +465,31 @@ gegen Compose-Datei diffen.
 - System.Threading.RateLimiting ist ab net10 im Shared Framework: explizite
   PackageReference erzeugt NU1510, mit TreatWarningsAsErrors ein Build-Error.
 - aspnet-Images enthalten kein wget — HEALTHCHECK mit wget braucht apt-get install.
+
+## GitHub Contents-API: leerer base64-String ueberschreibt Datei mit 0 Bytes (20.07.2026)
+`B64=$(base64 -w0 datei)` bei fehlender Datei ergibt leeren String; der PUT mit
+`"content":""` wird von GitHub akzeptiert und LEERT die Zieldatei (passiert bei
+build-mcp.yml, sofort restauriert). Regel: vor jedem Contents-PUT `[ -s file ] || exit 1`.
+
+## GitHub-Actions-YAML: Heredocs in run-Bloecken (20.07.2026)
+Heredoc-Inhalte in Spalte 1 innerhalb `run: |` verlassen den YAML-Literal-Block
+-> Parse-Fehler ("could not find expected ':'"). Remote-Scripts IMMER als base64
+einbetten: `echo "$B64" | base64 -d > /tmp/x.sh; ssh host 'bash -s' < /tmp/x.sh`.
+
+## Compose-Multi-Netz: Service muss in ALLE benoetigten Netze (20.07.2026)
+botmatiq-prod hat botmatiq-net UND botmatiq-internal; db haengt nur in internal.
+Ein Override-Service nur in botmatiq-net erreicht caddy, aber NICHT die db
+(NpgsqlException "Resource temporarily unavailable"). Netze dynamisch aus den
+top-level networks der prod-Compose uebernehmen.
+
+## Self-hosted Runner sind bei User-Accounts strikt PRO REPO (20.07.2026)
+Kein Org-Level. Neues Repo -> Job haengt ewig "queued". Loesung: Runner-Container
+auf gha-runner-01 als Sibling starten (Runner-Container haben docker.sock):
+bestehenden Container inspecten (Image/Env/Mounts generisch uebernehmen),
+REPO_URL/RUNNER_NAME/LABELS/RUNNER_TOKEN ersetzen, `docker run -d --restart always`.
+Registration-Token via API (PAT kann das). Muster: gha-botmatiq-mcp-1.
+
+## sed -i auf file-bind-mounted Datei: Container haelt alte inode (20.07.2026)
+`sed -i deploy/Caddyfile` + `caddy reload` laedt die ALTE Config (Bind-Mount einer
+Datei bindet die inode). Nach in-place-Edits gemounteter Dateien: Container
+recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
