@@ -330,3 +330,40 @@ gegen Compose-Datei diffen.
   -DontStopIfGoingOnBatteries -StartWhenAvailable` setzen UND die Action per
   `New-ScheduledTaskAction` mit sauberem Argument-String neu schreiben;
   danach Teststart + Log pruefen, nicht nur den Task-Status.
+
+### Ein einzelnes certbot-Cert laeuft ab, obwohl der Timer gruen ist
+- **Symptom**: genau EIN Cert expired/kurz vor Ablauf, `certbot.timer` laeuft, alle
+  anderen Certs renewen normal. (admin.tecmatiq.de, 07/2026)
+- **Cause**: die renewal conf DIESES Certs steht auf `authenticator = standalone`
+  (z.B. weil es mal manuell mit `--standalone` ausgestellt wurde — certbot merkt sich
+  die Methode pro Cert). Renewal will Port 80 binden, nginx belegt ihn -> stiller Fail.
+- **Fix**: `certbot certonly --cert-name X -d X --webroot -w /var/www/certbot` — schreibt
+  die renewal conf dauerhaft auf webroot um. Audit: `grep -L webroot /etc/letsencrypt/renewal/*.conf`.
+
+### HTTP-01-Challenge failt mit 404 trotz korrektem DNS + webroot
+- **Symptom**: `Invalid response from https://DOM/.well-known/acme-challenge/...: 404`,
+  DNS zeigt auf den richtigen Server. (8x *.kingdom-hosting.de, 07/2026)
+- **Cause**: der Port-80-Block macht `return 301 https://...` OHNE acme-Ausnahme.
+  LE folgt dem Redirect auf HTTPS; der HTTPS-Vhost proxied auf die App -> 404.
+- **Fix**: im :80-Block VOR dem Redirect:
+  `location /.well-known/acme-challenge/ { root /var/www/certbot; }` und den Redirect in
+  `location / { return 301 ...; }` wrappen.
+
+### nginx sites-enabled: Backup-Dateien werden mitgeladen
+- **Symptom**: `conflicting server name ... ignored`-Warnungen nach Config-Backups.
+- **Cause**: Ubuntu-Default `include /etc/nginx/sites-enabled/*;` laedt ALLE Dateien,
+  egal welche Endung (.bak, .acmebak, ...). In conf.d gilt `*.conf` — dort sind
+  Nicht-.conf-Backups harmlos.
+- **Fix**: Backups von sites-enabled-Dateien NIE im selben Verzeichnis ablegen ->
+  /root/nginx-acmebak/ o.ae.
+
+### Monitoring, das sich selbst nicht ueberwacht (3 Blindstellen auf einmal)
+- **Symptom**: Cert lief ab, kein Alarm. (07/2026)
+- **Cause**: (a) daily-health.yml stand auf `disabled_manually` (GitHub disabled
+  scheduled Workflows auch automatisch nach 60d Repo-Inaktivitaet); (b) SSL-Check mit
+  verifizierendem Context wirft bei expired -> `ssl_days=None` -> kein Alarmpfad;
+  (c) TG_TOKEN-Repo-Secret war rotiert -> sendMessage 401, nur stiller print.
+- **Fix**: Workflow-State pruefen (`GET /actions/workflows` -> `state`); Cert-Ablauf mit
+  `ssl._create_unverified_context()` + `openssl x509 -enddate` lesen und expired explizit
+  melden; Alert-Creds zur Laufzeit aus Vault ziehen statt Repo-Secret (daily-health.yml
+  macht das jetzt, Fallback Repo-Secret bleibt).
