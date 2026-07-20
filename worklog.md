@@ -4,6 +4,21 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-20 — Automatisierungs-Audit ueber alle 34 Repos + 4 Server ("keine Fehler mehr"):
+  20 disabled Workflow-Leichen geloescht (rissfest 11, vertriebsarchitekt 9). botmatiq-mcp
+  CI seit 15.06. rot — 4 gestapelte Defekte: Test-Subclass gegen sealed DbContext (Fix:
+  IModelCustomizer via ReplaceService, Shadow-Property VOR HasKey), trivy-action@0.24.0
+  upstream geloescht (auf v0.36.0-SHA gepinnt), SARIF-Upload in privatem Repo ohne GHAS
+  unmoeglich (entfernt, trivy bleibt exit-code-Gate), danach Pipeline gruen. Folgeeffekt
+  behoben: 13 Dependabot-PRs per rebase gegen gefixten main — alle gruen; 4 Actions-PRs
+  gemerged, 7 Major-PRs (dotnet-9-Images, nuget-Majors) bewusst offen fuer Andreas.
+  frag-einen-v2 PR#41: Dependabot-Lockfile-Sync-Bug (npm ci "Missing from lock file") —
+  Lock mit npm 10.8.2 --package-lock-only regeneriert, auf PR-Branch gepusht, gruen, gemerged.
+  Server: KAI certbot-Unit Altzustand bereinigt (Probelauf exit 0); Hosting mdmonitor
+  failed = echtes Loch (md-RAID1+5 vorhanden, [UUU] gesund) — gefixt, active; cpgreylistd
+  (WHM-Feature disabled) sauber deaktiviert; Endstand alle 4 Server ohne failed units.
+  linkedin-phase2 Catch-up-Timer 08:30 UTC deployt (Delivered-Marker + Skip-Guard) —
+  Pipeline jetzt selbstheilend bei transienten API-Ausfaellen.
 - 2026-07-20 — linkedin-phase2 (VA Linkedin Delivery) Ausfall repariert: 06:30-Run crashte
   im fact_validator an 529-Sturm (Opus ~30min+ ueberlastet, Sonnet lief parallel — Retry-Budget
   6 Versuche/164s zu klein, kein Fallback). Live-Stand /opt driftete vom Repo (resilient-Wrapper
