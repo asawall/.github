@@ -447,3 +447,21 @@ gegen Compose-Datei diffen.
   (10.99.0.10); UCG-Verwaltung IPC-unabhaengig via UniFi Remote Management
   (outbound HTTPS, keine Portfreigabe). IPsec-S2S nur falls je noetig,
   fruehestens nach IBN.
+
+### Workflow-Environment-URL bedeutet nicht, dass der Dienst je lief
+- **Symptom**: Deploy-Job mit environment-URL https://mcp.botmatiq.com/healthz, Domain
+  antwortet 503 (Envoy "upstream connect error") — sah aus wie ein Ausfall. (07/2026)
+- **Cause**: Die Strecke war nie live: Deploy-Secrets leer, Key-Pfad /home/gha existiert
+  auf keinem Runner, DNS zeigt auf die Website-Plattform statt auf einen Server mit dem
+  Container, /opt/botmatiq auf dem vermuteten Host nicht vorhanden.
+- **Fix/Lehre**: Vor Incident-Reaktion oder Monitoring-Aufnahme pruefen, ob der Dienst
+  jemals deployt war (Deploy-Job-Historie, DNS-Ziel, Host-Bestand). Ein nie gelaufener
+  Deploy-Job ist ein Befund, kein Ausfall.
+
+### .NET-10-Upgrade-Fallen
+- Debian-Basisimages existieren fuer .NET 10 nicht mehr (kein bookworm/trixie) —
+  noble (Ubuntu 24.04), alpine oder azurelinux; Tag-Existenz via
+  mcr.microsoft.com/v2/dotnet/<img>/manifests/<tag> pruefen (tags/list ist unvollstaendig).
+- System.Threading.RateLimiting ist ab net10 im Shared Framework: explizite
+  PackageReference erzeugt NU1510, mit TreatWarningsAsErrors ein Build-Error.
+- aspnet-Images enthalten kein wget — HEALTHCHECK mit wget braucht apt-get install.
