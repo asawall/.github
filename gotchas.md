@@ -367,3 +367,21 @@ gegen Compose-Datei diffen.
   `ssl._create_unverified_context()` + `openssl x509 -enddate` lesen und expired explizit
   melden; Alert-Creds zur Laufzeit aus Vault ziehen statt Repo-Secret (daily-health.yml
   macht das jetzt, Fallback Repo-Secret bleibt).
+
+### Traceback-Zeilennummern passen nicht zum Repo-Code
+- **Symptom**: Fehler-Traceback nennt Zeile 377, die Repo-Datei hat nur 269 Zeilen.
+  (linkedin-phase2 fact_validator, 07/2026)
+- **Cause**: /opt-Deployment wurde direkt auf dem Server gepatcht (Retry-Wrapper), nie
+  committed. Repo und Live-Stand drifteten wochenlang.
+- **Fix**: Bei Debugging IMMER erst den Live-Stand vom Server ziehen (base64 via One-shot),
+  gegen den patchen, und den gefixten Stand zurueck ins Repo committen. Danach ist das
+  Repo wieder Source of Truth. Server-Hotfixes ohne Commit sind verboten (regeln.md).
+
+### Anthropic 529 kann modell-spezifisch sein — Retry allein reicht nicht
+- **Symptom**: fact_validator (Opus) faellt 6x hintereinander mit 529, waehrend
+  content_generator (Sonnet) im selben Run problemlos durchlief. (07/2026)
+- **Cause**: Overload-Phasen treffen oft nur EIN Modell und dauern laenger als ein
+  kurzes Retry-Fenster (~3min). Backoff auf demselben Modell laeuft dann ins Leere.
+- **Fix**: Kreuz-Modell-Fallback im Wrapper (Opus<->Sonnet) mit frischem Retry-Budget
+  pro Modell; systemd TimeoutStartSec gross genug fuer das Gesamtbudget (1800s).
+  Muster: messages_create_resilient(..., _fallback_model=FALLBACK_MODEL).
