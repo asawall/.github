@@ -423,3 +423,27 @@ gegen Compose-Datei diffen.
   base.Customize() aufrufen, danach Modell anpassen. Shadow-Property MUSS vor HasKey
   deklariert werden (`Property<Guid>(..)` dann `HasKey(..)`) — umgekehrt wirft EF
   InvalidOperationException im Customizer-Pfad.
+
+## UniFi WireGuard-Conf-Import (UCG, Network 10.x)
+- **Symptom**: "Missing Address in [Interface]" trotz vorhandener Zeile; nach
+  dem Fix folgt "Invalid DNS in [Interface]".
+- **Cause**: Der Import-Parser trimmt `\r` nicht — CRLF-Dateien erzeugen die
+  Sektion `[Interface]\r`, die nie matcht. DNS ist bei UniFi Pflichtfeld,
+  obwohl wg-quick es optional laesst.
+- **Fix**: Conf LF-only+ASCII erzeugen (`[IO.File]::WriteAllText` mit
+  Backtick-n, NICHT Set-Content) und `DNS = 10.99.0.1` ergaenzen (ohne
+  Traffic-Routing wirkungslos, reine Parser-Beruhigung).
+
+## UCG-Ultra: WireGuard taugt nicht als Site-Gateway (Network 10.4.57)
+- **Symptom**: WG-"VPN Client" zeigt Connected (Handshake + rx/tx), aber
+  eingehender Tunnel-Traffic Richtung Gateway UND LAN wird verworfen —
+  Mac→50.x und Server→10.99.0.20 beide 100% loss trotz korrektem Routing.
+  Legacy-API kennt keine VPN_*-Rulesets (api.err.InvalidValue),
+  Site-to-Site bietet nur IPsec/OpenVPN.
+- **Cause**: Der VPN-Client ist ein Egress-Feature (LAN-Traffic durch einen
+  Provider-Tunnel rausrouten), kein Site-Terminator; WG-Site-to-Site
+  existiert in dieser Firmware nicht.
+- **Fix/Entscheid 20.07.2026**: 50er-Netz remote laeuft ueber den IPC-Peer
+  (10.99.0.10); UCG-Verwaltung IPC-unabhaengig via UniFi Remote Management
+  (outbound HTTPS, keine Portfreigabe). IPsec-S2S nur falls je noetig,
+  fruehestens nach IBN.

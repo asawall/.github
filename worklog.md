@@ -239,3 +239,14 @@
   Ist-PW. Bundle 4e8cb6b bereit. Di: Bundle-Deploy (1 Wrapper-Befehl),
   Handheld-APK, Vision-Einlernen live (verifiziert PZN-Kanonik am Scan),
   02:30-Nightly-Kontrolle, UCG-WG Stufe 2 weiter offen.
+- 2026-07-20 (3) — UCG-WG Stufe 2 ABGEBROCHEN + sauber RUECKGEBAUT: Network
+  10.4.57 auf UCG-Ultra hat kein WG-Site-to-Site; der WG-VPN-Client terminiert
+  (Handshake ok, LF/DNS-Import-Gotchas geloest), forwardet aber nicht — Diagnose
+  eindeutig (Mac-traceroute Hop1 10.99.0.1 ok, Server-Route ok, UCG verwirft
+  eingehend). Entscheid: 50er-Netz remote via IPC (24/7-Empfehlung), UCG via
+  UniFi Remote Management; Guettel-Liste +HTTPS-outbound; Packliste v2 im Repo.
+  Server bereinigt: UCG-Peer + 2 Leichen-Peers raus, 50er-Route weg,
+  iptables-Duplikat weg, wg0.conf bereinigt (Backup .bak-2026-07-20), Endstand
+  3 Peers (.2 Mac/.3 Alex/.10 IPC) verifiziert. Andreas-Resthandgriffe: Mac-
+  AllowedIPs zurueck auf 10.99.0.0/24, UniFi-VPN-Client-Eintrag loeschen,
+  Remote Management aktivieren. Alias-Korrektur dauerhaft: ssh botmatiq.
