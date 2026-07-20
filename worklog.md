@@ -250,3 +250,7 @@
   3 Peers (.2 Mac/.3 Alex/.10 IPC) verifiziert. Andreas-Resthandgriffe: Mac-
   AllowedIPs zurueck auf 10.99.0.0/24, UniFi-VPN-Client-Eintrag loeschen,
   Remote Management aktivieren. Alias-Korrektur dauerhaft: ssh botmatiq.
+- 2026-07-20 (4) — KORREKTUR (Andreas): Alex ist NICHT am Botmatiq/Merseburg-
+  Projekt beteiligt. Alle frueheren Alex-Bezuege (Field Engineer, WG-Peer
+  10.99.0.3, alex-tecmatiq.conf) waren Fehlannahme — nicht reproduzieren.
+  Peer 10.99.0.3 (nie ein Handshake) zur Entfernung vorgeschlagen.
