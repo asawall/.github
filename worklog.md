@@ -270,3 +270,34 @@
   Manager (unifi.ui.com) und ist vom Mac ohne IPC erreichbar. Direct Remote
   Connection + SSH bewusst AUS. Klinik braucht dafuer TCP 443+8883 outbound
   (Packliste v3). Tag komplett abgeschlossen; offen nur Nightly-Kontrolle 21.07.
+
+## 2026-07-20 — Botmatiq MCP: Go-Live test.botmatiq.de + Release v1.1.0 + IPC-Installer
+
+**Go-Live (test.botmatiq.de):** botmatiq-mcp laeuft als Container `botmatiq-botmatiq-mcp-1`
+(ghcr.io/asawall/botmatiq-mcp:main) im botmatiq-Stack (/mnt/data/botmatiq,
+docker-compose.mcp.yml, beide Netze botmatiq-net+internal — db haengt nur in internal).
+Caddy-Routen: `/mcp*` (JSON-RPC), `/mcp-healthz*` (rewrite -> /healthz, wildcard wegen
+daily-health-trailing-slash), `/dl/*` (Download-Spiegel, Basic-Auth botmatiq). SQL-Bootstrap
+v2 eingespielt: Rolle botmatiq_mcp (nur View-SELECT + audit-INSERT), mcp_audit_log, 6 Views
+gegen das REALE v4-Schema mit PascalCase-quoted Spalten (pick_runs, pick_batches+OrderItems-Join,
+article_stock+batch_tracking, compliance_protocols; AMOR-Views bewusst leer — kein Import-Log
+in v4). Tenant-Slug auf test: `test` (aus tenant_settings). Secrets NUR auf Host:
+`/mnt/data/botmatiq/.env.mcp` (DB-PW + BOTMATIQ_MCP_TENANT_TEST_KEY) und
+`deploy/downloads/.credentials` (DL-Basic-Auth). Smoke: /mcp-healthz=200 Healthy,
+tools/list extern ok. daily-health prueft jetzt `test.botmatiq.de/mcp-healthz`.
+
+**Runner:** botmatiq-mcp hatte 0 self-hosted Runner (Runner sind pro Repo) — `gha-botmatiq-mcp-1`
+als Sibling-Container auf gha-runner-01 registriert (generisches Klon-Muster, s. gotchas).
+
+**CI/Release v1.1.0:** kompletter Zyklus gruen (test, trivy, build+push, win-x64-release,
+mirror-to-test, ssh-deploy mit frischem GHCR-Login via job-scoped GITHUB_TOKEN — kein PAT
+auf Hosts). GitHub-Release-Assets: win-x64-ZIP (58 MB, self-contained), .sha256, install.ps1,
+latest.json; alles zusaetzlich im Spiegel https://test.botmatiq.de/dl/mcp/ inkl.
+SqlViewsBootstrap.sql. Code: UseWindowsService + konfigurierbarer Serilog-Pfad
+(On-Prem-IPC-faehig). install.ps1: Erstinstall/Update, SHA256-Check, Dienst BotmatiqMcp,
+Config in Service-Registry-Env, API-Key-Autogenerierung am Geraet.
+
+**Offen/Hinweise:** Merseburg/Gera-Rollout per install.ps1-Einzeiler (DB-Zugang lokal
+noetig); mcp.botmatiq.com-DNS zeigt weiter auf Website-Plattform (Produktentscheidung);
+Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
+
