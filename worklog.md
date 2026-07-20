@@ -265,3 +265,8 @@
   Projekt beteiligt. Alle frueheren Alex-Bezuege (Field Engineer, WG-Peer
   10.99.0.3, alex-tecmatiq.conf) waren Fehlannahme — nicht reproduzieren.
   Peer 10.99.0.3 (nie ein Handshake) zur Entfernung vorgeschlagen.
+- 2026-07-20 (5) — UCG Remote Management VERIFIZIERT: "Remote Access" (Control
+  Plane > Console) war seit Setup aktiv, Konsole "Merseburg" erscheint im Site
+  Manager (unifi.ui.com) und ist vom Mac ohne IPC erreichbar. Direct Remote
+  Connection + SSH bewusst AUS. Klinik braucht dafuer TCP 443+8883 outbound
+  (Packliste v3). Tag komplett abgeschlossen; offen nur Nightly-Kontrolle 21.07.
