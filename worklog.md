@@ -4,6 +4,17 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-20 — botmatiq-mcp auf .NET 10 LTS gehoben (PR #25, ersetzt 7 Dependabot-Major-PRs):
+  net10.0 in beiden csproj, EF/Design/InMemory 10.0.10, Npgsql-EF 10.0.3, Serilog.AspNetCore 10.0.0,
+  Sinks Console 6.1.1/File 7.0.0, HealthChecks.NpgSql 9.0.0, JsonSchema.Net 9.3.0, Mvc.Testing 10.0.10,
+  Test.Sdk 18.8.1, xunit 2.9.3/runner 3.1.5. System.Threading.RateLimiting-Referenz ENTFERNT
+  (NU1510: ab net10 im Shared Framework). Docker: sdk/aspnet 10.0-noble (Debian existiert fuer
+  .NET 10 nicht mehr; .NET 9 seit Mai 2026 EOL) + wget fuer Healthcheck nachinstalliert.
+  CI komplett gruen, :main-Image auf GHCR. Deploy-Job repariert (self-hosted, /home/runner-Key,
+  Host/User-Fallbacks — Secrets waren leer). BEFUND: mcp.botmatiq.com war NIE live —
+  DNS zeigt auf die Website-Plattform (216.227.142.171, kein SSH), auf test.botmatiq.de
+  existiert kein /opt/botmatiq; Envoy-503 seit jeher. Go-Live (Zielhost, compose, DB-Views,
+  DNS) ist offene Produktentscheidung. KAI: .env.from-vault-Duplikat geloescht.
 - 2026-07-20 — Automatisierungs-Audit ueber alle 34 Repos + 4 Server ("keine Fehler mehr"):
   20 disabled Workflow-Leichen geloescht (rissfest 11, vertriebsarchitekt 9). botmatiq-mcp
   CI seit 15.06. rot — 4 gestapelte Defekte: Test-Subclass gegen sealed DbContext (Fix:
