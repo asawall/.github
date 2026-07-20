@@ -4,6 +4,20 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-20 — Cert-Incident admin.tecmatiq.de (abgelaufen 19.07.): renewal conf stand
+  als einzige auf authenticator=standalone -> Port-80-Bind-Fail seit ~19.06. Fix:
+  certonly --webroot (gueltig bis 18.10.), deploy-hook reload-nginx.sh angelegt (fehlte
+  serverweit). Folgebefund: 8x *.kingdom-hosting.de (u.a. cloud/Nextcloud) waeren 25.07.
+  gefolgt — Port-80-Blocks return 301 ohne acme-Location -> LE 404; alle 8 gepatcht
+  (acme-Location vor Redirect), Certs erneuert, Zombie ki-cloud geloescht, .acmebak nach
+  /root/nginx-acmebak (sites-enabled laedt *!). Monitoring war 3-fach blind:
+  daily-health disabled_manually -> reaktiviert; admin/vault+4 Domains fehlten in
+  DOMAINS; SSL-Check erkannte expired nicht -> gefixt (unverified ctx + openssl,
+  307/308 ok, ok_doms-Zaehlung konsistent). TG_TOKEN-Repo-Secret war 401 ->
+  daily-health.yml zieht Telegram-Creds jetzt live aus Vault (Fallback Repo-Secret).
+  Report 18/18 gruen, TG-Versand verifiziert. Runner gha-infra-monitoring-1 haengend ->
+  docker restart via Nachbar-Container. 11 One-shots geloescht (inkl. Altlast
+  oneshot-deploy-va-copilot).
 - 2026-07-19 — Kernel-Reboot KAI+Botmatiq (6.8.0-134->136) per One-shot aus kingdom-ai: beide gruen (KAI 82->83 Container, nginx aktiv/caddy disabled, Vault+rissfest 200; Botmatiq 11/11, test.botmatiq.de 200). Befund: kingdom-ai.service Boot-Race (6 Fehlboots), kingdom-redis fehlte komplett -> wiederhergestellt, reset-failed, Gotcha dokumentiert. Botmatiq-IP in Doku auf 49.13.142.247 korrigiert (alt 5.9.112.153, DNS bestaetigt). One-shot geloescht.
 - 2026-07-19 — tender-watch live auf KAI (09bda02): taeglicher Scan TED+Bekanntmachungsservice auf Steuerungs-/Retrofit-Ausschreibungen -> Telegram; Erstlauf 65 aktive Treffer (u.a. Ruhrwehr Raffelberg Frist 30.07., WW Hermentingen/Zollernalb, IWES Leuna). Recherche-Basis: TED-API-Expertsyntax + DOEE-OCDS-Exporte (503-throttled, Retry-Design). Units via deploy-timers.yml, manueller Trigger tender-watch-once.yml.
 - 2026-07-16 — Kernkette LIVE auf Merseburg-IPC verifiziert: echte 10000014.auf ->
