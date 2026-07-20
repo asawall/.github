@@ -183,3 +183,11 @@
   29677885013) — liegt fuer Mo-Deploy bereit. Cloud-Ingest-Negativprobe:
   whoami/stats 401 ohne+mit Fake-Token, health public by design. Hinweis:
   Dependabot meldet 7 vulns (2 high) auf main — vor Feature-Freeze sichten.
+- 2026-07-20 — Merseburg Mo-Vorzug: Deploy d07e64c + CloudSync live via RDP-Schritte
+  (BeltId-Spalte verifiziert, Backup-Kette inkl. Cloud-Upload OK). 413-Vorfall
+  Learn-Sync (22 Messungen > 8mb express-Limit) gefixt 3af5060: Pusher chunkt
+  byte-basiert (MaxBatchBytes 4mb default, 413-Halbierung, Einzel-413-Skip gegen
+  Kopf-Blockade), ingest.js Limit 64mb + JSON-Fehlerpfad. Suite 1058/1058.
+  SuperAdmin-Deploy success, Cloud live. Gegenproben-Header ist
+  x-license-sync-token (NICHT Bearer). Offen: Nightly-Task 02:30 ohne Logeintrag
+  heute — schtasks-Check laeuft; Restore-Probe + Update-Pause als Bloecke geliefert.
