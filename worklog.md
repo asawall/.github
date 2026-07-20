@@ -4,6 +4,14 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-20 — linkedin-phase2 (VA Linkedin Delivery) Ausfall repariert: 06:30-Run crashte
+  im fact_validator an 529-Sturm (Opus ~30min+ ueberlastet, Sonnet lief parallel — Retry-Budget
+  6 Versuche/164s zu klein, kein Fallback). Live-Stand /opt driftete vom Repo (resilient-Wrapper
+  nie committed). Fix: Kreuz-Modell-Fallback (Validator Opus->Sonnet, Generator Sonnet->Opus)
+  mit frischem 7er-Retry-Budget je Modell, TimeoutStartSec 600->1800, run_phase2.sh auf exec-tee
+  (ERR-trap sah CURRENT_STEP nicht -> "FEHLER bei unknown") + PYTHONUNBUFFERED. Live-Stand
+  gepatcht ins Repo linkedin-phase2 zurueckgefuehrt (Repo wieder Source of Truth), 20 .bak-Altlasten
+  nach /root/linkedin-phase2-bak. Rerun 07:19: PASS, Post+Carousel 07:20 in Kanal geliefert.
 - 2026-07-20 — Cert-Incident admin.tecmatiq.de (abgelaufen 19.07.): renewal conf stand
   als einzige auf authenticator=standalone -> Port-80-Bind-Fail seit ~19.06. Fix:
   certonly --webroot (gueltig bis 18.10.), deploy-hook reload-nginx.sh angelegt (fehlte
