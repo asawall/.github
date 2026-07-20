@@ -385,3 +385,41 @@ gegen Compose-Datei diffen.
 - **Fix**: Kreuz-Modell-Fallback im Wrapper (Opus<->Sonnet) mit frischem Retry-Budget
   pro Modell; systemd TimeoutStartSec gross genug fuer das Gesamtbudget (1800s).
   Muster: messages_create_resilient(..., _fallback_model=FALLBACK_MODEL).
+
+### Kaputte Tests blockieren die Dependabot-Kaskade
+- **Symptom**: Woechentliche Dependabot-PRs seit Wochen rot, Security-Updates liegen brach.
+  (botmatiq-mcp, 06-07/2026)
+- **Cause**: Ein Refactor (DbContext sealed) brach die Test-Kompilierung auf main; jede PR
+  testet gegen main-Merge und erbt den Fehler. rerun-failed-jobs hilft NICHT (laeuft gegen
+  alten Merge-Commit) — nach dem main-Fix pro PR `@dependabot rebase` kommentieren.
+- **Fix**: main-Tests fixen, dann rebase-Kommentare; CI-gruene Actions-PRs mergen,
+  Runtime-Majors bewusst entscheiden.
+
+### SARIF-Upload braucht GitHub Advanced Security
+- **Symptom**: `Code scanning is not enabled for this repository` / vorher maskiert als
+  `Resource not accessible by integration`. (botmatiq-mcp, privates Repo)
+- **Cause**: code-scanning-API ist ohne GHAS-Lizenz fuer private Repos hart 403 —
+  keine Permission der Welt aendert das.
+- **Fix**: upload-sarif-Step entfernen; trivy mit format table + exit-code 1 als Gate reicht.
+
+### GitHub-API: NIEMALS gekuerzte SHAs vervollstaendigen
+- **Symptom**: `does not match` bei Contents-PUT bzw. `Unable to resolve action` bei
+  Action-Pins. (2x in einer Session, 07/2026)
+- **Cause**: Anzeige-Skripte kuerzen SHAs auf 10-12 Zeichen; der Rest wurde "aus dem
+  Gedaechtnis" ergaenzt — halluziniert.
+- **Fix**: Vor jedem PUT/Pin die volle 40-Zeichen-SHA frisch aus der API ziehen.
+  Tag-Pins via git/ref/tags aufloesen (annotated Tags dereferenzieren!).
+
+### Dependabot-npm-PRs mit unvollstaendiger package-lock.json
+- **Symptom**: `npm ci` bricht mit `Missing: <pkg> from lock file` ab, auch nach
+  `@dependabot recreate`. (frag-einen-v2 PR#41)
+- **Cause**: Dependabot laesst bei Gruppen-Bumps gelegentlich transitive Lock-Eintraege aus.
+- **Fix**: PR-Branch klonen, in der App `npx -y npm@<CI-Version> install --package-lock-only
+  --ignore-scripts`, nur die Lock committen und auf die Dependabot-Branch pushen.
+
+### sealed DbContext in Tests
+- **Symptom**: CS0509/CS0115 — Test-Subclass kann sealed Context nicht erben/ueberschreiben.
+- **Fix**: `options.ReplaceService<IModelCustomizer, EigenerCustomizer>()`; im Customizer
+  base.Customize() aufrufen, danach Modell anpassen. Shadow-Property MUSS vor HasKey
+  deklariert werden (`Property<Guid>(..)` dann `HasKey(..)`) — umgekehrt wirft EF
+  InvalidOperationException im Customizer-Pfad.
