@@ -308,3 +308,25 @@ gegen Compose-Datei diffen.
   Alternative = Stack einmalig unter das Compose-Projekt recreaten und
   restart-policies entfernen. Postgres-Daten liegen im Named Volume
   `kingdom-postgres-data` — ein Recreate waere datensicher.
+
+## PS 5.1: eingebettete doppelte Quotes an native EXEs gehen verloren (psql -c)
+- **Symptom**: psql meldet `Spalte »pzn« existiert nicht` — das SQL kam ohne die
+  `"PZN"`-Anfuehrungszeichen an, PG faltete den Namen zu lowercase.
+- **Cause**: PowerShell 5.1 Native-Argument-Quoting reicht eingebettete `"` nicht
+  zuverlaessig an C-Runtime-Programme durch (weder aus '...'-Strings noch via \").
+- **Fix**: SQL in Datei schreiben (`Set-Content`, single-quoted, `''` fuer `'`)
+  und `psql -f datei.sql` nutzen. Gilt generell fuer native EXEs mit
+  Quote-haltigen Argumenten.
+
+## Scheduled Task rot: 0x800710E0 und 0xFFFD0000 (Botmatiq DB-Backup, IPC)
+- **Symptom**: Task 'Bereit', aber Letztes Ergebnis -2147020576 (0x800710E0)
+  bzw. nach Settings-Fix 4294770688 (0xFFFD0000); kein 02:30-Logeintrag.
+- **Cause**: (1) schtasks-Default-Conditions (AC-Power/Idle) verweigern den
+  Start. (2) Das /TR-Escaping beim Install legte literale `\"...\"` in die
+  Action — `powershell -File` fand die Datei nicht. Merseburg-IPC hat
+  LocalMachine=AllSigned: Task-Actions brauchen zwingend
+  `-ExecutionPolicy Bypass`.
+- **Fix**: `New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries
+  -DontStopIfGoingOnBatteries -StartWhenAvailable` setzen UND die Action per
+  `New-ScheduledTaskAction` mit sauberem Argument-String neu schreiben;
+  danach Teststart + Log pruefen, nicht nur den Task-Status.

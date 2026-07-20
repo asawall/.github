@@ -191,3 +191,14 @@
   SuperAdmin-Deploy success, Cloud live. Gegenproben-Header ist
   x-license-sync-token (NICHT Bearer). Offen: Nightly-Task 02:30 ohne Logeintrag
   heute — schtasks-Check laeuft; Restore-Probe + Update-Pause als Bloecke geliefert.
+- 2026-07-20 (2) — Tagesabschluss Merseburg Mo-Vorzug KOMPLETT: 0.0.75 (3af5060)
+  live, Learn-Sync 23/23 synced (Chunking-Fix E2E verifiziert), PZN-Fragmentierung
+  bereinigt (Canonical-Praefix-Fix 4e8cb6b + Cloud-Upsert pzn, Altmessung per
+  SQL-Datei korrigiert + re-pusht, Cloud-stats sauber), Nightly-Task repariert
+  (Conditions + Action-Quotes; Teststart gruen, 02:30-Beweis morgen), Restore-
+  Probe BESTANDEN (58 Tabellen, BeltId, prod-Gegencheck 0), Update-Pause bis
+  24.08. postgres-PW: Andreas-Entscheid KEINE Rotation, Chat-Exposure akzeptiert
+  (localhost-only, gehaertetes Geraet); Vault POSTGRES_SUPER_MERSEBURG entspricht
+  Ist-PW. Bundle 4e8cb6b bereit. Di: Bundle-Deploy (1 Wrapper-Befehl),
+  Handheld-APK, Vision-Einlernen live (verifiziert PZN-Kanonik am Scan),
+  02:30-Nightly-Kontrolle, UCG-WG Stufe 2 weiter offen.
