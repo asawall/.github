@@ -4,6 +4,7 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-22 — easyArchitekt Staging: Super-Admin-Logins = Prod. Demo-Seed legte a.graf@ mit Seed-PW an, a.sawall@ gar nicht -> Staging hatte andere Zugaenge als Prod. Fix: infra/scripts/sync-superadmins-prod-to-staging.sh (Prod read-only, upsertet NUR die 2 Superadmin-Zeilen per E-Mail, argon2-Hash sicher via SQL format(%L) statt Shell, Hash-md5-Verifikation Prod==Staging) als Step in deploy-staging.yml -> selbstheilend bei JEDEM Staging-Deploy (auch nach DB-Reset). Run 29906067572 gruen, beide Hashes identisch, Seed uebersprungen (10 User, Testdaten intakt), api-staging extern 200. Standalone-Dispatch-Workflow verworfen -> nicht registrierbar (s. gotchas workflow_dispatch).
 - 2026-07-20 — botmatiq-mcp auf .NET 10 LTS gehoben (PR #25, ersetzt 7 Dependabot-Major-PRs):
   net10.0 in beiden csproj, EF/Design/InMemory 10.0.10, Npgsql-EF 10.0.3, Serilog.AspNetCore 10.0.0,
   Sinks Console 6.1.1/File 7.0.0, HealthChecks.NpgSql 9.0.0, JsonSchema.Net 9.3.0, Mvc.Testing 10.0.10,

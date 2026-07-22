@@ -493,3 +493,21 @@ Registration-Token via API (PAT kann das). Muster: gha-botmatiq-mcp-1.
 `sed -i deploy/Caddyfile` + `caddy reload` laedt die ALTE Config (Bind-Mount einer
 Datei bindet die inode). Nach in-place-Edits gemounteter Dateien: Container
 recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
+
+## workflow_dispatch ist nur ausloesbar, wenn der Workflow REGISTRIERT ist (2026-07-22)
+- Symptom: `POST /actions/workflows/<datei>.yml/dispatches` -> 404 "Not Found" fuer
+  einen frisch auf einen NICHT-Default-Branch (z.B. staging) gepushten
+  workflow_dispatch-Workflow; `GET /actions/workflows/<datei>.yml` ebenso 404.
+- Cause: Ein Workflow ist erst per REST/UI dispatchbar, wenn er "registriert" ist —
+  das passiert, wenn er auf dem Default-Branch (main) liegt ODER schon mindestens
+  einmal lief (z.B. per push-Trigger). Ein reiner dispatch-Workflow, der nur auf
+  staging liegt und nie lief, ist NICHT registriert. Verifiziert an easyarchitekt:
+  clone-prod-to-staging.yml (nur staging, nie gelaufen) -> 404; deploy-staging.yml
+  ist registriert, weil es per push laeuft.
+- Fix-Optionen: (a) Logik als Step in einen bereits per push laufenden Workflow
+  legen (z.B. deploy-staging.yml) -> gar kein Dispatch noetig; sauberste Loesung
+  fuer staging-Tooling, zudem selbstheilend. (b) Einen bereits registrierten
+  dispatch-Workflow (z.B. diag-once.yml, liegt auf main+staging) mit `ref=staging`
+  dispatchen -> laeuft die staging-Version der Datei. (c) NICHT einfach auf main
+  pushen, nur um zu registrieren: deploy.yml (push:main, kein Pfad-Filter) wuerde
+  sofort einen PROD-Deploy ausloesen.
