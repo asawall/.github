@@ -511,3 +511,20 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   dispatchen -> laeuft die staging-Version der Datei. (c) NICHT einfach auf main
   pushen, nur um zu registrieren: deploy.yml (push:main, kein Pfad-Filter) wuerde
   sofort einen PROD-Deploy ausloesen.
+
+## easyArchitekt: Demo-Seed haengt Super-Admins in KEINE Org (2026-07-22)
+- Symptom: Als Super-Admin (a.sawall@/a.graf@) in Staging etwas org-scoped anlegen
+  (Kontakt/Person, etc.) -> Fehler "verknuepfter Datensatz existiert nicht"
+  (Prisma/FK Contact_organizationId_fkey, organizationId='').
+- Cause: prisma/seed.ts legt die Demo-Org musterbau-gmbh-demo an und gibt NUR den
+  Rollen-Demo-Usern (usersByRole) eine OrganizationMembership. Die Super-Admins
+  werden oben separat als User angelegt und in KEINE Org gehaengt. Login
+  (auth.service.ts) setzt JWT orgId aus user.memberships[0] -> ohne Membership leer.
+  OrgId-Decorator: header x-org-id || token orgId || '' -> '' -> Contact.create({organizationId:''}) -> FK-Fehler.
+- User hat KEINE direkte orgId-Spalte; Org-Zugehoerigkeit laeuft ausschliesslich ueber
+  OrganizationMembership (unique [organizationId,userId]).
+- Fix (im Staging-Sync, deploy-staging): Owner-Org planningx-gmbh sicherstellen
+  (Slug -> getPlanConfig gibt Enterprise) und beide Super-Admins dort + in der
+  Demo-Org als ORG_ADMIN upserten. Idempotent.
+- Merke: Nach dem Fix muss eine bereits offene Session neu einloggen, sonst traegt
+  der alte Token weiterhin kein orgId.
