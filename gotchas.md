@@ -666,3 +666,19 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
 - model Signature (Inspection): Feld imageKey = storageKey des MediaAssets.
 - Begehungs-Signaturen haengen dagegen ueber mediaAssetId. Beim Kopieren des
   Begehungs-Musters auf Pruefungen entsprechend anpassen, sonst Prisma-Fehler.
+
+## Mobile: iOS zoomt bei Eingabefeldern unter 16px (2026-07-23)
+- Safari auf iOS zoomt beim Fokussieren automatisch hinein, wenn die
+  Schriftgroesse des Feldes < 16px ist. easyArchitekt nutzt durchgaengig
+  text-sm (14px) -> die Seite sprang bei JEDEM Antippen eines Feldes.
+- Fix in globals.css: @media (max-width:767px) { input/select/textarea
+  { font-size:16px !important } }. Checkbox/Radio ausnehmen.
+- Das ist eine der haeufigsten Ursachen fuer "mobil schwer nutzbar" und faellt
+  am Desktop nie auf.
+
+## easyArchitekt: DataView startete immer in der Tabellenansicht (2026-07-23)
+- defaultMode='table'; nur companies setzte explizit 'cards'. Auf 375px ist eine
+  mehrspaltige Tabelle (Maengel!) unbrauchbar.
+- Fix in lib/use-view-prefs.ts: beim Hydrieren pruefen, ob eine GESPEICHERTE
+  Vorliebe existiert. Nur wenn nicht und (max-width:767px) -> mode='cards'.
+  Wichtig: die explizite Nutzerwahl darf nicht ueberschrieben werden.
