@@ -584,3 +584,22 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
 - Typecheck (tsc --noEmit) faengt das NICHT — nur `pnpm --filter @easyarchitekt/web build`.
 - Muster im Repo: innere Komponente XPageInner + default export mit <Suspense fallback=...>.
   Vor jedem Push von Web-Aenderungen einmal den echten Next-Build laufen lassen.
+
+## easyArchitekt: Layout liefert Breite+Padding — Seiten duerfen kein max-w setzen (2026-07-23)
+- (app)/layout.tsx rendert <main className="flex-1 pb-20 md:pb-4 px-4 py-4 overflow-x-hidden">.
+- Seiten mit eigenem 'p-4 sm:p-6 max-w-5xl mx-auto' engen dadurch doppelt ein und wirken
+  gegenueber Maengel/Bautagebuch/Begehungen (die nur 'space-y-4' nutzen) zusammengerueckt.
+- Korrekt fuer Listenseiten: <div className="space-y-4">. Kein max-w, kein eigenes Padding.
+
+## easyArchitekt: Projekt-Filter NIE als Pill-Liste aller Projekte (2026-07-23)
+- Bei vielen Projekten fuellt das den halben Bildschirm. Von Andreas explizit moniert.
+- Richtiges Muster (Aufgaben/Maengel): Projekt kommt aus ?projectId bzw. Projekt-Kontext und
+  wird als EIN entfernbarer Chip gezeigt. Pills nur fuer kleine feste Mengen (Status, Typ, Disziplin).
+- Umgesetzt in components/ui/filter-bar.tsx (chips-Prop) + lib/use-project-filter.ts (liefert projectName).
+
+## easyArchitekt: Uploads waren nach dem Anlegen unveraenderlich (2026-07-23)
+- Dokumente und BIM-Modelle hatten NUR create+delete im Controller — kein PATCH. Eine falsche
+  Projektzuordnung liess sich nur durch Loeschen und Neuanlegen korrigieren. Plaene hatten
+  bereits @Patch(':id'), aber kein UI dafuer.
+- Ergaenzt: PATCH /documents/:id, PATCH /bim-models/:id + Edit-Dialoge fuer alle drei.
+- Merke: Bei neuen Upload-Entitaeten immer pruefen, ob Eigenschaften spaeter korrigierbar sind.
