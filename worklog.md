@@ -316,3 +316,11 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Bundle (windows-publish jetzt Wildcard), NICHT vorab scharf (Tunnel laeuft
   ueber i219), Vor-Ort-Schritt 1. NTP sofort konfiguriert (10.53.20.2 +
   pool-Fallback). Packliste v4.
+- 2026-07-20 (7) — Beyer 2. Rueckmeldung: KLINIK-IT KOMPLETT, kein Blocker.
+  SMB: cvb-app-12 = 10.53.20.16, Konto svc_batchflow (PW NICHT hier — Vault
+  SMB_BATCHFLOW_MERSEBURG + via Set-AmorShareCredential.ps1 auf IPC in Admin-
+  UND SYSTEM-Kontext, Dienst laeuft als SYSTEM auf Nicht-Domaenen-Geraet,
+  cmdkey fuer Host+IP). SMB-Dialekte 2.0.2-3.1.1. VLAN 420 UNTAGGED an C1-C2
+  -> Set-KlinikLan OHNE -VlanTag (Fallback bleibt). UCG 443+8883 zugesagt.
+  Offen an Beyer: "Kennwort laeuft nicht ab" bestaetigen + Rotation nach IBN.
+  Packliste v5 (ohne Klartext-PW). Neues Bundle dispatched.
