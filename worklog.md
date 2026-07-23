@@ -328,3 +328,10 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Update-Ordner geraeumt). Set-AmorShareCredential ParserError: BOM-lose
   UTF-8-PS1 + Em-Dash (0x94=Quote) — Sofort-Fix per BOM-Einzeiler am IPC,
   Repo dauerhaft ASCII+utf-8-sig fuer alle drei neuen Skripte, Gotcha erfasst.
+- 2026-07-23 (2) — SMB-Credential-Seeding VERIFIZIERT: SYSTEM-Store enthaelt
+  cvb-app-12 + 10.53.20.16 (cmdkey /list via SYSTEM-Task), Admin-Kontext ok,
+  Klartext-Tempdateien entfernt. Zwei Skript-Bugs unterwegs gefixt (BOM/ANSI
+  + [regex]::Escape-Klammern, beide im Repo). Klinik-IT-Vorbereitung am IPC
+  damit KOMPLETT: Deploy 0.0.80, LAN-Umschaltskripte, NTP, Credentials.
+  Vor Ort netzseitig nur noch: Set-KlinikLan (ohne -VlanTag) -> Tunnel-Check
+  -> Activate-AmorV6 (Pre-Flight-Schreibtest gegen Share).
