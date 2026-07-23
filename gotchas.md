@@ -649,3 +649,20 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   .hbs-Templates zu aendern, wird das HTML nach compileTemplate() gepatcht
   (gleiches Muster wie die bestehende serif-Font-Injektion).
 - <style> vor </head>, Banner direkt nach <body...>. Robust gegen Template-Aenderungen.
+
+## easyArchitekt Pruefungen: PATCH mit items[] ersetzt ALLE Punkte (2026-07-23)
+- inspections.service.update() macht bei dto.items zuerst deleteMany und dann createMany.
+  Alle Item-IDs sind danach neu. Alles, was an Item-IDs haengt (Kommentare, Haken,
+  Medien), waere damit verloren.
+- Fuer Checklisten deshalb EIGENE Endpunkte: POST :id/items, PATCH :id/items/:itemId,
+  DELETE :id/items/:itemId. Das alte Sammel-PATCH bleibt fuer den Anlege-Dialog.
+
+## easyArchitekt: Phase eines Kommentars nie manuell setzen lassen
+- InspectionItemNote.phase (PREPARATION/INSPECTION) wird serverseitig aus
+  inspection.startedAt abgeleitet. Wuerde das Frontend die Phase mitschicken,
+  waere die Nachvollziehbarkeit manipulierbar und bei vergessenem Flag falsch.
+
+## easyArchitekt: Signature-Modell nutzt imageKey, Signatur (Begehung) nutzt mediaAssetId
+- model Signature (Inspection): Feld imageKey = storageKey des MediaAssets.
+- Begehungs-Signaturen haengen dagegen ueber mediaAssetId. Beim Kopieren des
+  Begehungs-Musters auf Pruefungen entsprechend anpassen, sonst Prisma-Fehler.
