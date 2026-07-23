@@ -603,3 +603,13 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   bereits @Patch(':id'), aber kein UI dafuer.
 - Ergaenzt: PATCH /documents/:id, PATCH /bim-models/:id + Edit-Dialoge fuer alle drei.
 - Merke: Bei neuen Upload-Entitaeten immer pruefen, ob Eigenschaften spaeter korrigierbar sind.
+
+## PS1 im Botmatiq-Repo: IMMER UTF-8 MIT BOM (Windows PowerShell 5.1)
+- **Symptom**: ParserError-Kaskade ("Unerwartetes Token", fehlende Klammern)
+  beim Ausfuehren eines frisch erzeugten Skripts; Fehlertext zeigt `â€"`.
+- **Cause**: PS 5.1 liest BOM-lose .ps1 als ANSI/cp1252. UTF-8-Gedankenstrich
+  (E2 80 94) enthaelt Byte 0x94 = typografisches Anfuehrungszeichen, das
+  PowerShell als String-Delimiter akzeptiert — Strings enden mittendrin.
+- **Fix**: Skripte ASCII-only halten UND mit utf-8-sig (BOM) schreiben —
+  create_file/LF-Tools erzeugen KEINEN BOM. Sofort-Reparatur am Geraet:
+  ReadAllText(UTF8) + WriteAllText mit UTF8Encoding($true).

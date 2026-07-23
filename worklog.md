@@ -324,3 +324,7 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   -> Set-KlinikLan OHNE -VlanTag (Fallback bleibt). UCG 443+8883 zugesagt.
   Offen an Beyer: "Kennwort laeuft nicht ab" bestaetigen + Rotation nach IBN.
   Packliste v5 (ohne Klartext-PW). Neues Bundle dispatched.
+- 2026-07-23 — Deploy 0.0.80 (d10bf13) sauber, Retention-Fix wirksam (nur
+  Update-Ordner geraeumt). Set-AmorShareCredential ParserError: BOM-lose
+  UTF-8-PS1 + Em-Dash (0x94=Quote) — Sofort-Fix per BOM-Einzeiler am IPC,
+  Repo dauerhaft ASCII+utf-8-sig fuer alle drei neuen Skripte, Gotcha erfasst.
