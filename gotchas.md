@@ -613,3 +613,21 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
 - **Fix**: Skripte ASCII-only halten UND mit utf-8-sig (BOM) schreiben —
   create_file/LF-Tools erzeugen KEINEN BOM. Sofort-Reparatur am Geraet:
   ReadAllText(UTF8) + WriteAllText mit UTF8Encoding($true).
+
+## grep -v auf den Modulpfad verdeckt mehrzeilige Imports (2026-07-23)
+- Fehlanalyse gemacht: `grep -rn "gantt-drag" apps/web/src | grep -v "lib/gantt-drag"` lieferte
+  nichts -> Schluss "toter Code". Falsch: der Import ist mehrzeilig,
+  `import {\n useGanttDrag,\n} from '@/lib/gantt-drag';` — die Trefferzeile IST
+  `} from '@/lib/gantt-drag';` und wurde vom eigenen grep -v weggefiltert.
+- Richtig: nach dem SYMBOL suchen (`grep -rn "useGanttDrag"`), nicht nach dem Modulpfad,
+  oder `grep -A2 -B2` ohne Ausschlussfilter.
+
+## easyArchitekt Bauzeitenplan: Ueberschriften waren nur implizit erzeugbar (2026-07-23)
+- taskType SUMMARY wurde ausschliesslich dadurch gesetzt, dass man eine Aufgabe unter
+  eine andere einrueckt (Engine erkennt Eltern automatisch als Sammelvorgang).
+  Es gab keine Aktion "Ueberschrift anlegen" -> aus Nutzersicht existierte die Funktion nicht.
+- wbsCode (1.2.1) wurde von der Engine berechnet UND in die DB geschrieben, in der Tabelle
+  aber nie angezeigt (dort stand sequenceNumber). Reine Anzeige-Luecke.
+- Reihenfolge: sequenceNumber ist projektweit fortlaufend und wird auch fuer die
+  Vorgaenger-Notation ("3FS+5d") benutzt — beim Umsortieren MUSS sie lueckenlos in
+  Tiefensuche neu vergeben werden, sonst brechen Vorgaenger-Referenzen.
