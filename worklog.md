@@ -305,3 +305,13 @@ Config in Service-Registry-Env, API-Key-Autogenerierung am Geraet.
 noetig); mcp.botmatiq.com-DNS zeigt weiter auf Website-Plattform (Produktentscheidung);
 Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
 
+- 2026-07-20 (6) — Klinik-IT-Rueckmeldung (ACHTUNG: Kontakt heisst Jonathan
+  BEYER, j.beyer@klinikum-saalekreis.de, 03461/27-1088 — NICHT Guettel):
+  i219 = 10.42.0.1/24, GW 10.42.0.254, DNS 10.53.20.2/.3/.1, VLAN 420, NTP
+  10.53.20.2, kein NAC, Ports C1-C2 + C19-C22, IBN-Kontakte Platzer+Beyer.
+  UDP51820+TCP443-Freigaben bestaetigt. EINZIGER BLOCKER: SMB-Dienstkonto
+  cvb-app-12 "in Einrichtung" — nachfassen bis 24.07. (+ Frage tagged/access
+  VLAN + UCG 443/8883). Umsetzung: Set-KlinikLan.ps1/-WerkstattLan.ps1 im
+  Bundle (windows-publish jetzt Wildcard), NICHT vorab scharf (Tunnel laeuft
+  ueber i219), Vor-Ort-Schritt 1. NTP sofort konfiguriert (10.53.20.2 +
+  pool-Fallback). Packliste v4.
