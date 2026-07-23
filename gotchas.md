@@ -682,3 +682,20 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
 - Fix in lib/use-view-prefs.ts: beim Hydrieren pruefen, ob eine GESPEICHERTE
   Vorliebe existiert. Nur wenn nicht und (max-width:767px) -> mode='cards'.
   Wichtig: die explizite Nutzerwahl darf nicht ueberschrieben werden.
+
+## Prod-Rollout bei getrennten Historien: Konfliktzone ZUERST ermitteln (2026-07-23)
+- main und staging haben keinen gemeinsamen Vorfahren -> kein Merge moeglich.
+- Vorgehen, das funktioniert hat:
+  1. `git diff --name-only <staging-Basis>..origin/staging` = heute geaenderte Dateien
+  2. Dateiliste von main seit dessen Basis = main-eigene Arbeit
+  3. `comm -12` beider sortierter Listen = KONFLIKTZONE. Diese Dateien einzeln
+     inhaltlich pruefen, NIE blind kopieren.
+  4. Rest per `git checkout origin/staging -- <datei>` auf einen Branch aus origin/main.
+  5. Zusaetzlich `git ls-tree -r --name-only` beider Branches vergleichen — bei
+     getrennten Historien fehlen main u.U. Dateien, die staging seit langem hat
+     (hier: apps/web/src/lib/use-org-role.ts). Der Typecheck faengt das.
+- Konkreter Beinahe-Schaden: cookie-consent.tsx hatte auf main den domainweiten
+  Ads-Consent-Cookie, auf staging nur die Uebersetzungen. Blind kopieren haette
+  das Google-Ads-Conversion-Tracking still zerstoert.
+- Nach dem Rollout IMMER diff-prod-staging laufen lassen (Migrationszahl +
+  Spalten-Diff) und einen release/<datum>-Tag setzen.
