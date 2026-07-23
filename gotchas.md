@@ -631,3 +631,21 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
 - Reihenfolge: sequenceNumber ist projektweit fortlaufend und wird auch fuer die
   Vorgaenger-Notation ("3FS+5d") benutzt — beim Umsortieren MUSS sie lueckenlos in
   Tiefensuche neu vergeben werden, sonst brechen Vorgaenger-Referenzen.
+
+## easyArchitekt: Berichte waren nicht reproduzierbar (2026-07-23)
+- reports.service.renderPdf hat bei JEDEM Abruf neu aus den Live-Daten gerendert
+  (gatherData). Ein versendetes PDF liess sich spaeter nicht identisch erzeugen,
+  sobald sich Mangel/Tagebuch-Daten geaendert hatten — fuer Dokumente mit Beweiswert
+  nicht haltbar.
+- Loesung: Trennung Ansicht/Ausgabe. GET :id/pdf = ansehen (kein Lock),
+  GET :id/download = festschreiben. Beim Lock wird der gerenderte Buffer per
+  media.uploadBuffer abgelegt (lockedPdfKey) und danach IMMER von dort geliefert.
+- Aenderungen erzeugen nie eine Mutation, sondern ein neues Dokument (revise).
+- Merke: uploadBuffer erwartet uploaderId und fileName (nicht 'filename'),
+  media.downloadByKey liefert { buffer, mimeType }.
+
+## PDF: Querschnitts-Elemente nach der Template-Kompilierung injizieren
+- Revisionskopf/Hervorhebung sollten fuer ALLE Berichtsarten gelten. Statt vier
+  .hbs-Templates zu aendern, wird das HTML nach compileTemplate() gepatcht
+  (gleiches Muster wie die bestehende serif-Font-Injektion).
+- <style> vor </head>, Banner direkt nach <body...>. Robust gegen Template-Aenderungen.
