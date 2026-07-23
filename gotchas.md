@@ -528,3 +528,31 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   Demo-Org als ORG_ADMIN upserten. Idempotent.
 - Merke: Nach dem Fix muss eine bereits offene Session neu einloggen, sonst traegt
   der alte Token weiterhin kein orgId.
+
+## easyArchitekt: Gewerke (OrgTrade) fehlen bei jeder neu entstandenen Org (2026-07-23)
+- Symptom: Beim Anlegen einer Firma ist die Gewerke-Auswahl leer (0 Gewerke).
+- Cause: OrgTrades wurden ausschliesslich per Migration angelegt
+  (20260421102450_org_trades_many_to_many, 20260504100000_add_putz_trades), jeweils
+  `FROM "Organization" o CROSS JOIN (VALUES ...)` — also nur fuer die zum
+  Migrationszeitpunkt existierenden Orgs. `register()` in auth.service.ts legte die
+  Org OHNE OrgTrade-Zeilen an. Es gibt sonst KEINEN automatischen Pfad (nur manuelles
+  Anlegen ueber org-trades.service.create). Folge: jede nach dem Migrationsdatum
+  registrierte Org (auch echte Prod-Kunden!) hat 0 Gewerke.
+- Fix: DEFAULT_TRADES in apps/api/src/config/default-trades.ts (32 Gewerke) wird in
+  register() per createMany angelegt; Nachtrag fuer bestehende Orgs via
+  infra/scripts/seed-default-trades.sql (rein additiv, idempotent, WHERE NOT EXISTS
+  je Gewerkename -> manuell angelegte Gewerke bleiben unangetastet).
+  Wrapper: infra/scripts/ensure-default-trades.sh (TARGET=staging|prod).
+- Merke: Migrationen mit CROSS JOIN ueber Organization sind IMMER ein Einmal-Effekt.
+  Wer Referenzdaten so seedet, MUSS denselben Seed auch im Anlage-Pfad haben.
+
+## easyArchitekt: Staging ist Demo-Seed, kein Prod-Clone — Schema aber identisch (2026-07-23)
+- Geprueft mit infra/scripts/diff-prod-staging.sh (read-only: Rowcounts, Orgs,
+  Gewerke, Migrationen, Spalten-, Enum-Diff), dispatchbar ueber diag-once.yml (ref=staging).
+- Schema-Paritaet ist perfekt: 647 Spalten identisch, keine Enum-Differenz.
+  Daten weichen massiv ab (Staging = Demo-Seed). Das ist by design (docs/staging.md);
+  echter 1:1-Datenstand nur ueber clone-prod-to-staging.sh (anonymisiert, wipet Staging).
+- _prisma_migrations: Prod hat 41, Repo/Staging 40. Der Extra-Eintrag
+  20260618170000_mailsendlog_mangelprotokoll existiert in KEINEM Branch — handgeschriebene
+  Migration wurde in Prod eingespielt und nie committet. Ohne Schema-Wirkung (Spalten-Diff leer),
+  aber Repo beschreibt den Prod-Ledger nicht vollstaendig.
