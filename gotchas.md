@@ -556,3 +556,31 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   20260618170000_mailsendlog_mangelprotokoll existiert in KEINEM Branch — handgeschriebene
   Migration wurde in Prod eingespielt und nie committet. Ohne Schema-Wirkung (Spalten-Diff leer),
   aber Repo beschreibt den Prod-Ledger nicht vollstaendig.
+
+## easyArchitekt: main und staging haben KEINE gemeinsame Historie (2026-07-23)
+- Symptom: `git diff staging...origin/main` -> "fatal: no merge base".
+  Ein `git merge staging` in main wuerde --allow-unrelated-histories verlangen und
+  praktisch jede Datei in Konflikt bringen.
+- Folge: Der Weg "staging nach main mergen" aus der Doku funktioniert NICHT als Merge.
+- Vorgehen stattdessen: Branch aus origin/main erstellen und gezielt nur die noetigen
+  Dateien uebernehmen: `git checkout -B fix origin/main` +
+  `git checkout staging -- <pfade>` + commit + `git push origin HEAD:main`.
+  Vorher pruefen, ob die Datei auf beiden Branches identisch ist (dann uebertraegt
+  sich der Patch sauber): `git show origin/main:<pfad>` gegen `git show staging:<pfad>`.
+- ACHTUNG Fallstrick: Beim Branch-Wechsel gehen so gestagte Dateien verloren, wenn sie
+  auf dem Zielbranch identisch existieren (Index wird "clean"). Also: staggen UND sofort
+  committen, nicht zwischendurch den Branch wechseln.
+
+## easyArchitekt: push auf staging loeste keinen Deploy aus (2026-07-23)
+- Beobachtet bei Commit 53eed95: Push auf staging ohne [skip ci], trotzdem 0 Runs
+  (`GET /actions/runs?head_sha=...` -> total_count 0). Ursache nicht abschliessend geklaert.
+- Workaround: deploy-staging.yml hat `workflow_dispatch` und ist registriert ->
+  `POST /actions/workflows/deploy-staging.yml/dispatches -d '{"ref":"staging"}'`.
+- Merke: nach jedem Push verifizieren, dass wirklich ein Run existiert, statt anzunehmen.
+
+## Next 15: useSearchParams braucht eine Suspense-Boundary (2026-07-23)
+- Ein Hook, der intern useSearchParams nutzt (hier useProjectFilter), laesst den
+  Next-Build der Seite scheitern, wenn die Page nicht in <Suspense> gewrappt ist.
+- Typecheck (tsc --noEmit) faengt das NICHT — nur `pnpm --filter @easyarchitekt/web build`.
+- Muster im Repo: innere Komponente XPageInner + default export mit <Suspense fallback=...>.
+  Vor jedem Push von Web-Aenderungen einmal den echten Next-Build laufen lassen.
