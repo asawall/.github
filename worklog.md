@@ -378,3 +378,21 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   aufnehmen (Vault-Doku oder verschluesselte Kopie). FEATURE-FREEZE
   festgestellt: Punkt 8 (Handheld-Fuehrung CT37) NACH IBN (KW33+) —
   Measure-Article.ps1 fuehrt vor Ort bereits durch die Auflagen.
+- 2026-07-24 (4) — IBN-Vorbereitung IPC ABGESCHLOSSEN (Repo d74c4fc):
+  IPC laeuft 0.0.86, Migration 66 Dateien konvertiert, 612 Waisen/8,6 GB
+  entfernt (frei 36,6 -> ~40 GB). Messkonfig EdgeOffset 1,8 / MinFill 0,85 /
+  Zuschlag 0/0/3 aktiv. CloudSync scharf: 4 Messungen + 66 Bilder in der
+  Cloud (17,9 MB, ~271 KB/Bild — JPEG-Fix bestaetigt, vorher waeren es
+  970 MB gewesen). Sync-Token rotiert (alter Token stand im Chat), Datei +
+  sa_licenses.slug='merseburg' synchron, whoami gruen. WICHTIG: .env trug
+  Botmatiq__CloudSync__* — ENV schlaegt appsettings; Zeilen entfernt
+  (.env.bak), Standortdatei ist jetzt einzige Wahrheit. NEU im Repo:
+  claim-token-Route + issue-token-claim-Workflow (Token-Uebergabe an
+  Anlagen ohne Abtippen), Run-BotmatiqUpdate.ps1 (Ein-Durchlauf-Update),
+  update-bundle-Route + ship-update-bundle (Bundle-Download ohne
+  GitHub-Zugang), Waisen-Cleanup im Worker (OrphanMinAgeHours 24).
+  OFFEN vor SAT: PZN-Kanonisierung fuers Cloud-Merging (Altbestand mischt
+  1418925 / PZN-01418925 / 01484543), Einlern-Gegentest mit neuer Messkette
+  (Zuschlag + Namensvergabe) steht noch aus, Servo-Achsparameter-Vorlage
+  (AM8122-0NH1 + PLE60 8:1 + ELM7221) — Beckhoff-Hardware noch nicht da,
+  Parametrierung muss vorbereitet sein damit SAT-Zeit reicht.

@@ -712,3 +712,24 @@ gebrauchs.info /developer + /produkte leiten auf B2B-Login um — API nur per
 Vertrag, keine oeffentliche Preisliste. ABDA-Artikelstamm (pharmazie.com,
 ifap) kommerziell. Konsequenz im Produkt: Operator-Eingabe beim Einlernen,
 AMOR-Stamm bleibt Master (LearnedArticleName). OCR bewusst ausgeschlossen.
+
+## workflow_dispatch direkt nach git push greift den Vorgaenger-Commit (24.07.2026)
+Ein Dispatch unmittelbar nach dem Push startete den Run auf dem ALTEN
+head_sha — die neue Route war deployt-gemeldet, aber nicht enthalten
+("Cannot GET /api/ingest/v1/claim-token" trotz gruenem Deploy). Nach JEDEM
+Dispatch den head_sha des gestarteten Runs gegen den erwarteten Commit
+pruefen:
+  curl -H "Authorization: Bearer $PAT" ".../actions/workflows/<wf>/runs?per_page=1" | jq -r '.workflow_runs[0].head_sha'
+Bei Abweichung Dispatch wiederholen. Ausserdem Deploys immer per Live-Probe
+gegen die neue Route verifizieren, nicht nur ueber conclusion=success.
+
+## PS1-Dateien im Repo haben CRLF — Patch-Skripte muessen normalisieren
+Mit newline='\r\n' geschriebene Skripte matchen keine LF-Suchmuster:
+raw.decode('utf-8-sig').replace('\r\n','\n') vor dem replace, dann wieder
+mit newline='\r\n' schreiben (BOM via utf-8-sig erhalten).
+
+## Sync-Token-Uebergabe an Anlagen: nie abtippen
+IPC und Server teilen kein Clipboard, der IPC hat kein SSH. Loesung ist der
+issue-token-claim-Workflow (Einmal-Code, TTL Minuten) + Route
+GET /api/ingest/v1/claim-token?code=... — die Anlage holt sich den Token
+selbst. Standardweg fuer jede Erstprovisionierung.
