@@ -363,3 +363,18 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   AMOR-Name wird NIE ueberschrieben (LearnedArticleName + Tests). OFFEN:
   IPC-Update + Set-VisionConfig ausfuehren, Server-Recreate superadmin-api,
   Felde-Gegentest, Punkt 8 (Handheld CT37) eigene Session.
+- 2026-07-24 (3) — Deploys VERIFIZIERT + Punkt 9 + Feature-Freeze: superadmin-
+  Deploy Run 30080732955 gruen (Compose-Volume learn-images in Server-Compose
+  Zeile 185, sa_learn_images-Schema angelegt, Health ok, whoami merseburg,
+  learn-images/stats {"articles":[]}). Windows-Bundle Run 30080734124:
+  botmatiq-backend-win-x64 391 MB, gueltig bis 29.07. — IPC-Update-Stand
+  c778dba. Punkt 9 (Speicher): Einlernbestand nach JPEG-Fix ~2,4-9 MB/Artikel
+  (vorher 176-265 MB .bgr) -> 500 Artikel = 1,2-4,5 GB, dauerhaft, jetzt via
+  Stufe 2 OFFSITE (Einlern-Datensatz erstmals katastrophenfest).
+  Betriebsbilder: Rotation 30d laeuft (ImageRotationWorker, Learn-Images
+  ausgenommen); Formel Positionen/Tag x MB x 30 — echte Rate nach IBN-Woche 1
+  aus vision_captures ablesen, ImageRetentionDays ggf. anpassen. RESTLUECKE:
+  appsettings.merseburg.json (inkl. SyncToken) nur lokal+.bak — in Go-Review
+  aufnehmen (Vault-Doku oder verschluesselte Kopie). FEATURE-FREEZE
+  festgestellt: Punkt 8 (Handheld-Fuehrung CT37) NACH IBN (KW33+) —
+  Measure-Article.ps1 fuehrt vor Ort bereits durch die Auflagen.
