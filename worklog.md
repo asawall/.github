@@ -396,3 +396,46 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   (Zuschlag + Namensvergabe) steht noch aus, Servo-Achsparameter-Vorlage
   (AM8122-0NH1 + PLE60 8:1 + ELM7221) — Beckhoff-Hardware noch nicht da,
   Parametrierung muss vorbereitet sein damit SAT-Zeit reicht.
+- 2026-07-24 (5) — Nachmittag/Abend, IPC bereits verladen (Repo bfd7068):
+  SERVO b0554a0: docs/SERVO_ACHSPARAMETER_MERSEBURG.md (NC-Parameter,
+  Scan-Verify, Zweipunkt-Kalibrierung) + deploy/scripts/Prepare-ServoAxis.ps1;
+  Hardware kam NICHT rechtzeitig und geht direkt nach Merseburg -> Woche wird
+  servo-entkoppelt gefahren, siehe docs/IBN_KW31_ABLAUFPLAN_MERSEBURG.md.
+  DEPS c8e8c69: Dependabot 14 -> 3 (HIGH weg; 3x moderate = react-router-v6
+  ohne v6-Patch, dokumentiert akzeptiert, v7-Migration Post-IBN).
+  SECURITY f2e34f7: Set-BotmatiqPasswords.ps1 rotiert alle 7 Seed-User direkt
+  in der IPC-DB (BCrypt via Add-Type, Live-Login-Test); docs/SECURITY_VOR_
+  KLINIKBETRIEB.md mit Passwort-Ablauf, appsettings-Vault-Sicherung,
+  PAT-Runbook, Dependency-Restrisiken, IBN-Reihenfolge.
+  PZN a49c0bd: Kanonisierung jetzt auch cloudseitig — pznCanonical (JS-Port
+  von PznUtil.Canonical, 16/16) + SQL-Zwilling sa_pzn_canonical + idempotente
+  Bestandsmigration im DDL; Deploy verifiziert 0 nicht-kanonische Zeilen,
+  Otowaxol vereinigt (1418925 total=15), 01484543 -> 1484543. IPC-Seite war
+  bereits sauber -> kein IPC-Update noetig, Feature-Freeze gehalten.
+  BACKUP-BEFUND: letzter manueller Lauf vor Verladung meldete "Kein Sync-Token
+  in .env - Backup bleibt lokal", Exit 0. URSACHE laut Worklog-Eintrag (4):
+  die Botmatiq__CloudSync__*-Zeilen wurden bewusst aus der .env entfernt,
+  appsettings.merseburg.json ist einzige Wahrheit — das Backup-Skript kannte
+  nur die .env. Learn-Sync lief unbeeintraechtigt weiter (Eingang 13:14), nur
+  der DB-Upload unterblieb seit 07:24. FIX fb96b50: Fallback-Kette (.env ->
+  appsettings*.json -> secrets\cloud-sync.token) + Quelle im Log + neues
+  Verify-CloudBackup.ps1 (Token-Quelle, whoami, Alter der juengsten Kopie,
+  -SetToken als Notnagel). Behebung = reiner Skript-Transfer vor Ort.
+  SERVER-ERHEBUNG (via SSH auf DEPLOY_HOST): IPC-Cloud-Backups vorhanden
+  (juengste 24.07. 07:24, Retention greift). Server-eigenes Backup existiert
+  (/opt/botmatiq-backup/backup.sh -> /mnt/data/backups/<ts>/pgdumpall.sql.gz),
+  ABER mit Tagesluecken (18./21./23./24.07. da, 19./20./22.07. fehlen) und
+  OHNE sichtbaren Trigger (weder root-Cron noch systemd-Timer) — OFFEN, vor
+  Klinikbetrieb klaeren. /mnt/data/botmatiq IST ein Git-Checkout (frueherer
+  Gegenbefund ueberholt). DB botmatiq 403 MB, superadmin 13 MB, /mnt/data 14%.
+  IBN-PLANUNG: docs/IBN_KW31_ABLAUFPLAN_MERSEBURG.md neu — blockierte Punkte
+  mit SAT-Relevanz (Bootprojekt+Autostart, Shuttle-Retain, DI/DO-Pass),
+  servo-unabhaengiger Arbeitsvorrat (Folierung Mattschwarz + Vision-Kalibrierung
+  sind der Wochenzweck), Tagesgeruest, Nachzieh-Block ~2,5-4 Tage,
+  Terminrisiko: bei Lieferung Do/Fr passt die Servo-Kette NICHT mehr in KW31
+  -> Zusatztermin KW33 Mo/Di vor SAT terminieren, solange Kalender frei ist.
+  Packliste entsprechend angepasst (Servo aus der Mitnahme, Skript-Transfer-
+  liste erweitert).
+  OFFEN: Felde-Gegentest 10000017.E01; appsettings-B64 in den Vault
+  (einzige Kopie des SyncTokens ausserhalb der Maschine); Server-Backup-Trigger
+  + Luecken; PAT-Rotation.

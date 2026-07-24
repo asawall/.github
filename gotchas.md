@@ -733,3 +733,54 @@ IPC und Server teilen kein Clipboard, der IPC hat kein SSH. Loesung ist der
 issue-token-claim-Workflow (Einmal-Code, TTL Minuten) + Route
 GET /api/ingest/v1/claim-token?code=... — die Anlage holt sich den Token
 selbst. Standardweg fuer jede Erstprovisionierung.
+
+## Alle self-hosted Runner sind Container auf dem Trainhub-Host (24.07.2026)
+gha-botmatiq-1, -2 und -hubdeploy-1 laufen samt und sonders als Docker-
+Container auf 178.104.211.135 (hostname 5b47238b9443 / 895a117e1d8d, root,
+172.18.0.x) — KEINER hat /mnt/data oder sonst Zugriff auf den Prod-Server
+49.13.142.247. Ops-Workflows, die serverseitig etwas erheben oder aendern,
+muessen deshalb ueber appleboy/ssh-action + secrets.DEPLOY_HOST gehen, so wie
+ops-deploy-superadmin es tut. Ein Workflow, der auf dem Runner selbst
+`ls /mnt/data` macht, findet eine leere Welt und meldet faelschlich "fehlt".
+Kostete vier Anlaeufe (v1-v4), bis die Erhebung per SSH (v5) korrekt lief.
+
+## PS 5.1: Backup-Token lag in .env, nicht in appsettings — Skript kannte nur eine Quelle (24.07.2026)
+Backup-Botmatiq-DB.ps1 las den Sync-Token ausschliesslich aus C:\Botmatiq\.env.
+Als die Botmatiq__CloudSync__*-Zeilen bewusst aus der .env entfernt wurden
+(ENV schlaegt appsettings, .env trug nach der Rotation den alten Wert), fand
+das Skript nichts mehr, meldete WARN und beendete sich mit **Exit 0** — der
+Cloud-Upload fiel still aus, das Backup blieb auf der Maschine liegen, die es
+sichern soll. Lehre: bei jeder Konfig-Bereinigung pruefen, WELCHE Konsumenten
+die entfernte Quelle lesen (Dienst != Skripte), und Skripte, die Secrets
+konsumieren, mit Fallback-Kette bauen + die verwendete Quelle protokollieren.
+Behoben: .env -> appsettings*.json (Botmatiq:CloudSync:SyncToken) ->
+secrets\cloud-sync.token, plus Verify-CloudBackup.ps1 als Pruefwerkzeug.
+
+## /mnt/data/botmatiq IST ein Git-Checkout (Korrektur, 24.07.2026)
+Der frueher notierte Gegenbefund ("kein Git-Repo, .git aus rsync exkludiert")
+stimmt nicht mehr: die Erhebung vom 24.07. zeigt ein vorhandenes .git.
+Vor Migrationsarbeiten also Repo-Zustand pruefen statt neu klonen.
+
+## Server-Backup /opt/botmatiq-backup/backup.sh laeuft ohne sichtbaren Trigger (24.07.2026)
+Es existieren taegliche Dumps unter /mnt/data/backups/<ts>/pgdumpall.sql.gz
+(02:30), aber weder root-crontab noch ein systemd-Timer referenziert das
+Skript — und es gibt Tagesluecken (19./20./22.07. fehlen, 18./21./23./24. da).
+Trigger und Luecken sind ungeklaert; vor Klinikbetrieb aufloesen. Bei der
+Suche: /etc/cron.d/, /etc/crontab und User-Crontabs anderer Accounts pruefen,
+die die Erhebung nicht abgedeckt hat.
+
+## PznUtil-Kanonik ist die GESTRIPPTE Form, nicht 8-stellig gepadded
+Canonical("00002510") = "2510" (nicht "00002510"). PZN-Praefix wird nur
+entfernt, wenn der Rest rein numerisch ist ("PZNX-123" bleibt). Cloudseitig
+gibt es den JS-Port pznCanonical und den SQL-Zwilling sa_pzn_canonical im
+DDL-Block von superadmin-api/ingest.js — alle drei muessen deckungsgleich
+bleiben, Kontrakt sind die InlineData-Faelle in ArticleDataConsistencyTests.
+
+## botmatiq-cc ist yarn-verwaltet — kein npm-Lockfile hineinlegen
+Ein versehentlich mitgelaufenes package-lock.json fuehrt zu divergenten
+Abhaengigkeiten. vite 7.3.6 erlaubt uebrigens esbuild ^0.28 (Dependabot-Weg
+fuer die esbuild-Advisories).
+
+## docs/MANIFEST.md ist ein historisches Chunk-Dokument
+Keine neuen Doku-Eintraege dort nachtragen — es beschreibt den Aufbau in
+Chunks 0-14 und wird nicht als Verzeichnis gepflegt.
