@@ -340,3 +340,26 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   damit KOMPLETT: Deploy 0.0.80, LAN-Umschaltskripte, NTP, Credentials.
   Vor Ort netzseitig nur noch: Set-KlinikLan (ohne -VlanTag) -> Tunnel-Check
   -> Activate-AmorV6 (Pre-Flight-Schreibtest gegen Share).
+- 2026-07-24 (2) — Einlernbox-Paket Punkte 1-7 KOMPLETT (4 Commits bis
+  f262cd5, Suite 1099/1099, CI/CD gruen fuer 7dce282): (1) JPEG-Encoder-Fix
+  — tote Reflexion (Mat-Ctor existiert in OpenCvSharp 4.13 nicht mehr) durch
+  direktes Mat.FromPixelData+Cv2.ImEncode ersetzt (Muster Kalibrier-Vorschau,
+  IPC-feldbewaehrt); .bgr-Bestand nativfrei lesbar (BgrRawFormat) — vorher
+  Score 0 fuer alle Altbestaende; BgrMigrationWorker konvertiert Bestand beim
+  Boot idempotent nach JPEG (alle 3 Tabellen, Datei-Loeschung erst nach
+  DB-Commit, temp+rename). (2) SessionCommit loescht Dateien ersetzter
+  Einlernbilder. (3) MinFillRatio 0.85. (4) Sicherheitszuschlag explizit
+  (SafetyMargin L/W/H, Default 0/0/3mm) — Stamm=Messwert+Zuschlag, Rohmessung
+  + angewandter Zuschlag persistiert. (5) Cloud-Sync Stufe 2: Einlernbilder
+  einzeln als Multipart an /api/ingest/v1/learn-image (sha256, temp+rename,
+  Upsert tenant/captureId/role, Ablage /mnt/data/botmatiq/learn-images,
+  neues Compose-Volume — Server-Recreate noetig!), Outbox-Spalten additiv,
+  Bestand synct einmalig komplett. (6) deploy/scripts/Set-VisionConfig.ps1:
+  EIN gefuehrtes Skript (EdgeOffset 1.8/MinFill/Zuschlag + CloudSync-
+  Scharfschaltung mit whoami-Test, Merge+.bak, ASCII+BOM, pwsh-geparst).
+  (7) PZN-Namensquelle GEPRUEFT: gebrauchs.info = B2B-Vertrag hinter Login
+  (NICHT frei), ABDA-Stamm kommerziell -> Artikelname als Operator-Eingabe
+  beim Commit (?name=, Measure-Article.ps1 fragt ab), Master-Regel: echter
+  AMOR-Name wird NIE ueberschrieben (LearnedArticleName + Tests). OFFEN:
+  IPC-Update + Set-VisionConfig ausfuehren, Server-Recreate superadmin-api,
+  Felde-Gegentest, Punkt 8 (Handheld CT37) eigene Session.

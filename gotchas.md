@@ -699,3 +699,16 @@ recreaten (`compose up -d --force-recreate <svc>`), nicht nur reload.
   das Google-Ads-Conversion-Tracking still zerstoert.
 - Nach dem Rollout IMMER diff-prod-staging laufen lassen (Migrationszahl +
   Spalten-Diff) und einen release/<datum>-Tag setzen.
+
+## PowerShell-Syntaxcheck im Sandbox-Container (24.07.2026)
+`dotnet tool install --global PowerShell` ist kaputt (DotnetToolSettings.xml
+fehlt im Paket). Stattdessen GitHub-Release-Binary: powershell-7.4.x-linux-
+x64.tar.gz nach /opt/pwsh entpacken, chmod +x, dann Parser::ParseFile fuer
+PS1-Syntaxchecks VOR dem Push (PS-5.1-Fallen zusaetzlich manuell: kein ??,
+kein ternaerer Operator, ASCII+utf-8-sig).
+
+## PZN-Namensaufloesung: keine freie Quelle (24.07.2026)
+gebrauchs.info /developer + /produkte leiten auf B2B-Login um — API nur per
+Vertrag, keine oeffentliche Preisliste. ABDA-Artikelstamm (pharmazie.com,
+ifap) kommerziell. Konsequenz im Produkt: Operator-Eingabe beim Einlernen,
+AMOR-Stamm bleibt Master (LearnedArticleName). OCR bewusst ausgeschlossen.
