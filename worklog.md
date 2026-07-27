@@ -439,3 +439,29 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   OFFEN: Felde-Gegentest 10000017.E01; appsettings-B64 in den Vault
   (einzige Kopie des SyncTokens ausserhalb der Maschine); Server-Backup-Trigger
   + Luecken; PAT-Rotation.
+- 2026-07-27 — IBN-Vorbereitung Abend: Freeze bewusst aufgehoben (Andreas-
+  Entscheidung). Bundle 0.0.88 gebaut + ausgeliefert (Testsuite 1101/1101),
+  enthaelt gegenueber 0.0.86: Gewicht-Import (de0b3e6), Servo-Vorlage im Code,
+  Passwort-Rotation, Dependency-Fixes. NEU Invoke-BotmatiqAllInOne.ps1
+  (948ddb3): EIN Befehl, der auf dem IPC alles macht — Sync-Token aus
+  appsettings holen, neuestes Bundle aus der Cloud laden (update-bundle-Route,
+  Header x-license-sync-token), entpacken (Deploy-Skripte + Artikelstamm-CSV
+  reisen im Bundle mit), Run-BotmatiqUpdate.ps1 ausfuehren, 746 Artikel
+  importieren (/api/v1/articles/import/csv, Multipart), Verify-CloudBackup.
+  Selbstaktualisierend (spiegelt Skripte nach deploy\scripts\), idempotent.
+  windows-publish nimmt jetzt deploy/data/ ins Bundle (CSV via git add -f, war
+  durch data/-Regel geignored). CSV-Import las Weight_g vorher hart null trotz
+  Persist-Faehigkeit -> behoben. Merseburg-Export = 845 Artikel, 746 mit
+  vollstaendigen Maszen+Gewicht, 99 Nacharbeit (Blatt 'Masze fehlen').
+  Datenhinweis: Masze als physische Packungsorientierung (Breite>Laenge bei
+  109), Huellensolver muss orientierungstreu vergleichen. Erstlauf am IPC =
+  kompletter Copy-Paste-Block (Skript liegt im Bundle, beim ersten Mal noch
+  nicht auf dem IPC -> Henne-Ei), danach als Datei auf dem IPC.
+  KABELLISTE (1ef8cbb): alle 8 Netzwerkstrecken im Plan als 1,5-m-Patchkabel,
+  reale Wege 8-15 m -> 6 Strecken neu verlegen; W304 Servo 13 m konfektioniert
+  (Weg messen); Plan-Widersprueche Aenderungsliste vs Schaltplan (ELM7221 vs
+  EL7211, ZK4704 13m vs 10m, STO: Blatt 23 sagt KEIN STO an der Klemme,
+  Stillsetzung ueber K8.0/K9.0). AM8122-0NH1 vs -0JH1 + ZB8103 vs ZB8110 beim
+  Wareneingang pruefen.
+  OFFEN unveraendert: Felde-Gegentest; appsettings-B64 in Vault; Server-Backup-
+  Trigger+Luecken; PAT-Rotation.
