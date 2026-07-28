@@ -484,3 +484,26 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   GOTCHA Sandbox: api.github.com wird vom Cowork-Proxy geblockt ("add_repo"),
   git push/clone gehen aber -> CI-Status nicht lesbar, Verifikation ueber
   Live-Verhalten statt Actions-API.
+- 2026-07-28 (2) — easyArchitekt Mail-System-Ausbau (ad892a7): Alle 4
+  Berichts-Versandwege (Begehung Voll/Teil, Mangelprotokoll, Pruefprotokoll,
+  Berichtswesen) auf SAMMELMAIL umgestellt (alle To sichtbar, CC/BCC ueberall,
+  vorher Einzelmail-Schleifen). Absender: fromName='Vorname Name · Buero' +
+  Reply-To=User-Mail; From-Adresse bleibt easyarchitekt.de (SPF/DKIM, Andreas
+  wollte 'reale Absender' — Reply-To-Pattern erklaert+umgesetzt).
+  MailSendLog: +empfaengerFeld TO/CC/BCC, +projectId, Enum +PRUEFPROTOKOLL
+  +BERICHT; Inspections+Reports loggten vorher GAR NICHT, jetzt lueckenlos;
+  Zeile pro Empfaenger, Sammelmail = gemeinsame smtpMessageId.
+  Neu: send-logs-Endpoints je Quelle (inspections/defects/reports/daily-logs
+  via Report-Join params.dailyLogId), /protocol-distribution/mail-history
+  (+.csv, Filter Zeitraum/Art/Projekt/q/Status, Excel-DE BOM+Semikolon),
+  source.csv je Bericht. Frontend: CcBccFields+MailHistoryCard+
+  SendProtocolDialog (components/distribution), Historie-Cards auf 4 Detail-
+  seiten, neue Seite /mail-historie + Nav. Migration additiv, laeuft im
+  Container-CMD. E2E auf Prod verifiziert (Feld-Logging, SENT+messageId,
+  Uebersicht, beide CSVs). Testmail an a.sawall ging raus (Absender-Demo).
+  MERKE: example.com hat nullMX -> als Test-Empfaenger unbrauchbar, va-mail
+  lehnt komplett ab wenn ALLE rcpt rejected. Zweite Test-Org angelegt
+  (claude-e2e2@planning-x.de, 'E2E-Testorg-2 (loeschen)') — BEIDE Test-Orgs
+  + claude-e2e-test@planning-x.de bei Gelegenheit hart loeschen.
+  OFFEN/Idee: Partial-Reject (einzelne rcpt abgelehnt) markiert aktuell alle
+  SENT; Bounce-Tracking (Status BOUNCED) waere naechster Ausbau.
