@@ -465,3 +465,22 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Wareneingang pruefen.
   OFFEN unveraendert: Felde-Gegentest; appsettings-B64 in Vault; Server-Backup-
   Trigger+Luecken; PAT-Rotation.
+- 2026-07-28 — easyArchitekt Bugfix aus dem Feld (Screenshot Alexander,
+  Pruefung "Brandschutz-Begehung"): Pruefprotokoll-PDF brach mit
+  'Missing helper: "inc"' ab. Ursache: inspection.hbs nutzt {{inc @index}},
+  Helper war in pdf.service.ts nie registriert. Zweiter Fund: inspections.
+  generateReport uebergab insp OHNE { inspection }-Wrapper -> haette nach
+  Helper-Fix ein inhaltsleeres PDF ergeben. Fix cf39386: inc+phaseLabel-
+  Helper, Wrapper korrigiert, Template ausgebaut (Teilnehmer-Klarnamen via
+  zentrale Aufloesung im PdfService statt roher IDs — InspectionParticipant
+  hat KEINE Prisma-Relation zu User/Contact; checked-Status mit von/am;
+  Item-Kommentare im PDF: Vorbereitung grau / Termin gruen wie in der App;
+  Titel "Pruefprotokoll" statt "Begehungsprotokoll"). reports.gatherData
+  laedt notes+checkedBy fuer INSPECTION mit. Verifiziert: Typecheck lokal,
+  Deploy-Restart 16:25Z beobachtet, E2E ueber eigenen Trial-Account
+  (claude-e2e-test@planning-x.de, Org "E2E-Testorg (loeschen)") — PDF ok,
+  Testdaten soft-geloescht, Account/Org besteht noch (kein Self-Delete-
+  Endpoint; bei Gelegenheit hart loeschen wegen Trial-Metriken).
+  GOTCHA Sandbox: api.github.com wird vom Cowork-Proxy geblockt ("add_repo"),
+  git push/clone gehen aber -> CI-Status nicht lesbar, Verifikation ueber
+  Live-Verhalten statt Actions-API.
