@@ -4,6 +4,23 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-29 (2) — Merseburg SPS-Scharfschalt-Paket (botmatiq 6b7ae64): PDF-Vollabgleich
+  gegen finales EPL23032026 (142 Bl.) — alle 80 GVL_IO-Adressen deckungsgleich Blatt 16/16.1.
+  BEFUND-KORREKTUREN: Behaelterkette liegt in G8.0 NICHT G6.0 (falsche K-2-Kommentare in
+  GVL/FB/IO_LISTE bereinigt; K-2 real offen, Entscheidungsvorlage Abgleich §6, Empfehlung
+  SW-Stopp genuegt); MOVITRAC Ein->X12.2/Freigabe->X12.3 lt. Bl.4/5 (18.07.-Kommentar war
+  vertauscht, Bench T3 prueft P60x); K-3 erledigt (H4/H5/H6-Hardware-Leuchten existieren);
+  K-4 = 2-min-LED-Test (Plan zeigt A2.4, Draht D56 sagt A2.6). CODE: A-8 Quittier-Sequenz
+  (Delay+Retry statt Einmal-Flanke, S3.0 = Quittiergeraet), A-9 + Bewegungssperre (Level),
+  Vision_bSorterBeltStopped + 5 Diagnose-Knoten additiv, bVisionInstalled=TRUE (sonst
+  DYNAMIC-Burst e9c953f nie aktiv — PERSISTENT-Falle: am IPC online setzen!),
+  ConveyorControl-Startsperre, TcTTO Safety->Main->Motion, Task-Entscheid 1x10ms bleibt.
+  NEU: docs/IBN_SPS_SCHARFSCHALTEN_MERSEBURG.md (V0-V7, pro Punkt XAE+Hardware-Verify,
+  Abbruchkriterien) + deploy/scripts/Invoke-TwincatIbn.ps1 (Preflight/Build/Activate/
+  IoPass-CSV/Status/Scharfschalten/Disarm via XAE-AI+ADS, PS5.1 ASCII+BOM). Konnektivitaet
+  verifiziert: Mac-WG 10.99.0.2 -> IPC .10 ping 64ms, RDP offen, ADS 48898 zu (Skript
+  laeuft lokal). NC-Achse bewusst NICHT im tsproj (Scan-Verify-Doktrin). Scharfschalten
+  (Bootprojekt+Autostart) gated hinter V1-V6, morgen vor Ort mit Andreas.
 - 2026-07-23 (8) — PROD-ROLLOUT durchgefuehrt (main 084a7f0, Tag release/2026-07-23). Deploy gruen, api.easyarchitekt.de/health ok, app + Marketing 200, alle neuen Endpunkte registriert (reports revise/translate, inspections start/items/notes/signatures/report/send, ai/handwriting, defects/reports). Verifikation per diff-prod-staging: Prod 44 Migrationen (vorher 41 + 3 neue), 672 Spalten identisch zu Staging, 0 Abweichungen. Sicherungspunkt pre-rollout-2026-07-23 (Prod 115K/61 Tab.) vorher erstellt. ROLLOUT-METHODE wegen getrennter Historien: Branch aus origin/main + datei-genau 113 Dateien aus staging uebernommen. KRITISCH: cookie-consent.tsx war auf BEIDEN geaendert — main hatte den domainweiten Ads-Consent-Cookie (Domain=.easyarchitekt.de), staging nur die Uebersetzungen. Staging-Fassung zu kopieren haette das Conversion-Tracking still zerstoert; stattdessen main-Fassung behalten und tr() daraufgesetzt. Zweiter Fund: use-org-role.ts existiert auf staging seit laengerem, fehlte auf main komplett (Typecheck deckte es auf). Zuvor: Handschrifterkennung (POST /ai/handwriting, Vision-Modell, Canvas mit Pointer-Events inkl. Pencil-Druck; erkannter Text wird NICHT direkt uebernommen sondern zur Kontrolle angezeigt).
 - 2026-07-23 (7) — staging f317032 (Deploy gruen): Mobile + Restarbeiten. Versand friert das PDF jetzt ein (reports.generate setzte nur sentAt -> versendete Fassung war nicht reproduzierbar; jetzt lockedPdfKey/lockedReason SENT/contentSnapshot). Uebersetzungen dateiweise weiter: 336 -> 159 offen, Woerterbuecher 918/918 in 7 Sprachen. MOBILE: DataView startete immer als Tabelle -> unter 768px ohne gespeicherte Vorliebe Kartenansicht; iOS-Zoom-Bug behoben (Felder <16px lassen Safari beim Fokus zoomen -> 16px unter 768px); Dialoge nutzen volle Breite; Icon-Buttons 44px Mindestgroesse via button:has(>svg:only-child); Gantt startet mobil mit 10px statt 24px pro Tag.
 - 2026-07-23 (6) — staging f19cd3d (Deploy gruen): Pruefungen ausgebaut. BEFUND: Es gab gar keine Detailseite — eine angelegte Pruefung liess sich nicht oeffnen. Neu: /inspections/[inspectionId] mit Checkliste (Punkte einzeln anlegen/abhaken/loeschen ueber neue Item-Endpunkte; NICHT ueber das bestehende PATCH mit items[], das alle Punkte loescht und neu anlegt -> Kommentarbezuege waeren weg), 'Pruefung jetzt starten' (Status IN_PROGRESS + startedAt), Kommentare je Punkt mit Phase (PREPARATION grau / INSPECTION gruen, Phase automatisch aus startedAt abgeleitet), KI-Diktat je Punkt. Danach: mehrere Unterschriften mit Unterzeichner-Auswahl aus Stammdaten (Contacts+Companies) ueber den bestehenden SignaturePadModal, sowie Pruefprotokoll-PDF (renderInspection -> MediaAsset) und Mailversand. Migration 20260723160000 (InspectionItem.checked/checkedAt/checkedById + Tabelle InspectionItemNote) handgeschrieben, additiv, idempotent, lokal gegen PG16 mit Funktionstest geprueft. Zuvor 2383f01: Menuepunkt Berichte entfernt, Maengellisten-Archiv unter Maengeln (GET /defects/reports), Zeitraum-Filter dateFrom/dateTo, Spalten Erstellt + Status geaendert aus DefectHistory.
