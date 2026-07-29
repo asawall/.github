@@ -784,3 +784,25 @@ fuer die esbuild-Advisories).
 ## docs/MANIFEST.md ist ein historisches Chunk-Dokument
 Keine neuen Doku-Eintraege dort nachtragen — es beschreibt den Aufbau in
 Chunks 0-14 und wird nicht als Verzeichnis gepflegt.
+
+## Handlebars escaped `=` in URLs (2026-07-29)
+`{{var}}` escaped nicht nur `&<>"'`, sondern auch `=` zu `&#x3D;` — eine URL wie
+`…?token=abc` wird damit in Mails zerstört bzw. fragil. Für serverseitig
+konstruierte URLs in Mail-Templates IMMER Triple-Stash `{{{var}}}` verwenden.
+Betraf password-reset.hbs; vorsorglich alle URL-Platzhalter umgestellt.
+
+## Mailpit-Body-Extraktion: QP + Entities (2026-07-29)
+Beim Extrahieren von Links aus Mailpit-API-Bodies vor dem Regex normalisieren:
+QP-Soft-Breaks (`=\r\n`), `=3D`→`=`, `=3F`→`?`, `&#x3D;`→`=`. Sonst schlagen
+`grep`/`re.search` auf `?token=` still fehl.
+
+## GHA maskiert Secret-Werte auch in Diag-Ausgaben (2026-07-29)
+DEPLOY_SSH_PORT="22" → jedes "22" in Job-Logs wird zu `***`. Für zuverlässige
+Log-Exfiltration von Daten (z.B. Mail-Ausschnitte) Base64-kodieren und lokal
+dekodieren.
+
+## Staging-Branch trug die Staging-Infra exklusiv (2026-07-29, behoben)
+`infra/scripts/deploy-staging.sh`, DNS-Sync, staging-compose lagen NUR auf dem
+staging-Branch, nie auf main → Force-Reset von staging auf main-Basis zerstörte
+den Staging-Deploy. Jetzt liegt die Infra auf main; alter Branch-Stand gesichert
+als `staging-backup-20260729`. Regel: staging = main + zu testende Commits.

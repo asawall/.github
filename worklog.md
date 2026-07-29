@@ -527,3 +527,40 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   + claude-e2e-test@planning-x.de bei Gelegenheit hart loeschen.
   OFFEN/Idee: Partial-Reject (einzelne rcpt abgelehnt) markiert aktuell alle
   SENT; Bounce-Tracking (Status BOUNCED) waere naechster Ausbau.
+- 2026-07-29 — easyArchitekt Support-Ausbau (Session-Trigger: Ticket-Mail von
+  Isabell Piela nicht lesbar/Button fuehrte ins Dashboard). PROD-DEPLOYS:
+  04c5c49 + 511d43b, alle verifiziert (Deploy+Post-E2E gruen).
+  (1) Ticket-Mail-Fix: messagePreview (600c) in ticket-new-admin +
+  ticket-reply-admin; Deep-Link: Login respektiert ?next= (nur relative
+  Pfade), Admin-/App-Layout geben echten Pfad mit; Super-Admin-Navlink
+  (/admin/tickets) fuer isSuperAdmin.
+  (2) Passwort-Reset NEU (gab es nicht!): POST /auth/forgot-password +
+  /auth/reset-password, 60-Min-Token (sha256-Hash am User, additive Migration
+  20260729210000), kein Enumeration-Leak, alle RefreshTokens revoked; Seiten
+  /forgot-password + /reset-password; Login-Link. E2E auf Staging komplett:
+  Token 64c aus Mailpit, reset ok, Token-Reuse 401, Login neu ok/alt abgelehnt.
+  (3) KI-Ticket-Triage (SUPPORT_AI_REPLY_ENABLED, Compose-Default true in
+  Prod+Staging): AiService.supportTriage klassifiziert gegen kuratierte KB
+  (apps/api/src/templates/support-kb.de.md); How-to+confidence>=0.75 →
+  Auto-Antwort als Thread-Message vom System-User assistent@easyarchitekt.de
+  (isSuperAdmin=t fuer Support-Styling, isActive=f gegen Login/Admin-Mails)
+  + Kundenmail + waiting_customer; sonst Eingangsbestaetigung
+  (ticket-received.hbs) + INTERNE KI-Notiz mit Zusammenfassung. E2E: How-to-
+  Ticket korrekt auto-beantwortet (inhaltlich richtig), Billing-Ticket korrekt
+  eskaliert. Nur bei create, nie bei Replies; Fehler brechen Flow nie.
+  (4) Vorlagen bei Pruefungen nutzbar gemacht: Dropdown im Neue-Pruefung-
+  Dialog (befuellt Pruefpunkte aus schema.items), Server-Fallback
+  instanziiert org-scoped. Isabellas Frage traf echte Luecke (Vorlagen waren
+  erstellbar, aber nirgends auswaehlbar).
+  DIAGNOSE Piela: User seit 10.07. intakt (ORG_ADMIN, 32 Trades, pro/trialing
+  bis 09.08.); "Fehler bei Konto-Erstellung" 19 Tage alt, aus Logs nicht mehr
+  rekonstruierbar. 2 Templates "Oekologische Baubegleitung" (INSPECTION).
+  INFRA: diag-once.yml jetzt parametrisierbar (workflow_dispatch input
+  "script", SSH auf KAI, read-only-Konvention), nach Session auf Noop zurueck.
+  Staging-Infra-Dateien von staging-Branch nach main uebernommen (siehe
+  gotchas). Test-Account Staging: claude-e2e-ticket@planning-x.de
+  (Passwort nach E2E: NeuesPw!2026e2e), 2 Test-Tickets auf Staging-DB.
+  OFFEN: Alex ueber KI-Auto-Antwort informieren (live in Prod!); Antwort an
+  Piela kann raus (Features live); KB pflegen wenn Features dazukommen;
+  ticket-reply-admin bekommt kein messagePreview-E2E (Codepfad symmetrisch,
+  typechecked); Assistent-User entsteht in Prod lazy beim ersten Ticket.
