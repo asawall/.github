@@ -616,3 +616,13 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Run nach FieldCount-Fix); android-ui-test Runner braucht libX11
   (Emulator bootet nicht, unabhaengig von Commits); InstallationWizard-
   Datei-Store (PLC-Daten doppelt) konsolidieren nach IBN.
+  NACHTRAG 23:10: Bundle 0.0.91 (Publish-Run 91/ef89d48, Ship-Run 8) via
+  Invoke-BotmatiqAllInOne auf IPC eingespielt — Version verifiziert,
+  Schutzdateien (.env/.lic/appsettings.merseburg) unveraendert, Backup
+  botmatiq-pre-update-20260730-230815, AMOR-V6-Startsignal ok, CloudSync
+  pushed 2/0 offen, Off-Site-Kette ok. Konsolidierte Anlagenkonfig-UI +
+  FieldCount-Fix damit live in Merseburg. WARN: AllInOne-API-Login mit
+  Seed service/botmatiq scheitert (Go-Review-Rotation 24.07.) -> Artikel-
+  stamm-Import uebersprungen (Abschlusstext "importiert" irrefuehrend);
+  pruefen ob 746 Artikel aus frueherem Lauf vorhanden, sonst Import mit
+  rotiertem Login nachholen. AllInOne-Todo: Login konfigurierbar machen.
