@@ -16,8 +16,8 @@
   Tenant-JSON (Befund 16.07.). ReturnFolder-Default=DropFolder -> Umschalt-Block fertig
   (beide .env-Zeilen raus + Restart + Log-Check), gated hinter Rechte-Fix. IPC auf 0.0.91
   (Andreas-Parallelsession FieldCount); AllInOne-WARN service-Login = PW-Rotation anderes
-  Thema. SMB-PW noch NICHT im Vault (Key SMB_BATCHFLOW_MERSEBURG fehlt) — mit sape-admin
-  anlegen.
+  Thema. SMB-PW im Vault: SMB_BATCHFLOW_MERSEBURG /providers (Andreas via UI, per Read
+  verifiziert). Web-PW-Recovery-Pfad: DB-Zugang aus .env + Set-BotmatiqPasswords.
 
 - 2026-07-30 (2) — Doktrin-Umkehr Mass-Hoheit (botmatiq 4d19436/16a5a39/c6ccba8): AMOR
   absolut, Hierarchie amor>manual>vision (DimensionAuthority+Bestandsheuristik), Einlernen
