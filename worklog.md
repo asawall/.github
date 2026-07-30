@@ -564,3 +564,35 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Piela kann raus (Features live); KB pflegen wenn Features dazukommen;
   ticket-reply-admin bekommt kein messagePreview-E2E (Codepfad symmetrisch,
   typechecked); Assistent-User entsteht in Prod lazy beim ersten Ticket.
+
+2026-07-30 (Session 2, IBN vor Ort) BOTMATIQ ANLAGENKONFIG MERSEBURG:
+  BEFUND: Anlagenkonfig war 5 Stores / 7 UI-Seiten ohne Kopplung;
+  /plant doppelt geroutet (Konsistenzreport unerreichbar); 3 Seed-Pfade
+  (AuthService FlapCount=BeltCount-Bug, ServiceController Werkstatt-Default,
+  Wizard-Versionen); Wizard ohne StellplatzCount, Defaults 8/4; SimMode
+  DB-Feld kosmetisch (Laufzeit=appsettings). IST-DB: 2 gleichzeitig aktive
+  plant_configs (system+seed, beide FlapCount=4, PlcHost 192.168.1.10,
+  SimMode t), belt_slot_config+transfer_openings LEER.
+  BEREINIGT (Block 2d, Backup C:\Botmatiq\backup\cfg-vor-bereinigung-
+  20260730-221800.dump): genau 1 aktive Config "Merseburg CvB
+  Zentralapotheke" (4 Baender/9 Stellplaetze/100 Wannen/Achse 5800mm/
+  FlapCount 1/OperatorLanes 4/127.0.0.1:4840/SimMode f), 4x
+  belt_slot_config FieldCount=4, 8 transfer_openings (x.1=F1, x.2=F4,
+  per Foto+Zaehlung vor Ort). Konsistenzpruefung 5x OK, Dienst-Neustart
+  mit Watchdog-Pause, Health gruen.
+  CONNSTRING-LEKTION: operative Quelle ist C:\Botmatiq\.env
+  (ConnectionStrings__Default) — appsettings-Klartexte sind Altbestand mit
+  rotiertem Passwort; bei ENC: Vault POSTGRES_SUPER_MERSEBURG (Muster
+  Set-BotmatiqPasswords.ps1/Backup-Botmatiq-DB.ps1). PS5.1: EAP=Stop +
+  native stderr toetet Skripte — native Calls via cmd /c kapseln.
+  COMMITS: 02e907c UI-Konsolidierung /plant-config (Tabs Stamm/Baender/
+  Oeffnungen/Netzwerk/Konsistenz, Alt-Routen redirecten, Nav SYSTEM 6->1,
+  Seed FlapCount:=1, Wizard StellplatzCount+Defaults), 2c289bd ToteCount-
+  Grenze 500, dabb30c package-lock-Revert (Sandbox-Lockfile brach Runner-
+  GLIBC; parallele Session pinnte rollup 4.46.4 in 16a5a39), <neu>
+  fix(belt-config) FieldCount API/UI pflegbar (PUT nahm FieldCount nie an,
+  Baender-Seite kannte es nicht — Mitursache leerer belt_slot_config).
+  OFFEN: Bundle-Update auf IPC einspielen (Apply-Botmatiq-Update, neuester
+  Run nach FieldCount-Fix); android-ui-test Runner braucht libX11
+  (Emulator bootet nicht, unabhaengig von Commits); InstallationWizard-
+  Datei-Store (PLC-Daten doppelt) konsolidieren nach IBN.
