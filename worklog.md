@@ -4,6 +4,21 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-30 (3) — AMOR-Austauschpfad Merseburg: Klinik-LAN blockt 443/GitHub; DNS
+  fuer cvb-app-12 fehlt -> hosts 10.53.20.16 (+ hosts 10.99.0.1 admin.botmatiq.de fuer
+  Cloud via WG). Share \\cvb-app-12\aescudata existiert (Fehler 67 war DNS/Credential),
+  svc_batchflow-PW live-getestet + Admin/SYSTEM-Store Host+IP geseedet (Set-AmorShare-
+  Mechanik inline, Read-Host MIT Echo gegen RDP-86er). batchflow = Drop-Box-Rechte:
+  Anlegen ja, Listing/Loeschen nein -> Ingest braucht MODIFY (MoveToProcessed/ACK/E0x);
+  Anforderung an Beyer/Guettel raus, verwaiste ~botmatiq-writetest-*.tmp dort loeschen
+  lassen. Activate-AmorV6 lief (JSON=UNC, Neustart), Dienst blieb aber lokal: .env-
+  Werkstatt-Override Z25/26 (Botmatiq__Amor__DropFolder/ReturnFolder) gewinnt ueber
+  Tenant-JSON (Befund 16.07.). ReturnFolder-Default=DropFolder -> Umschalt-Block fertig
+  (beide .env-Zeilen raus + Restart + Log-Check), gated hinter Rechte-Fix. IPC auf 0.0.91
+  (Andreas-Parallelsession FieldCount); AllInOne-WARN service-Login = PW-Rotation anderes
+  Thema. SMB-PW noch NICHT im Vault (Key SMB_BATCHFLOW_MERSEBURG fehlt) — mit sape-admin
+  anlegen.
+
 - 2026-07-30 (2) — Doktrin-Umkehr Mass-Hoheit (botmatiq 4d19436/16a5a39/c6ccba8): AMOR
   absolut, Hierarchie amor>manual>vision (DimensionAuthority+Bestandsheuristik), Einlernen
   bricht nie ab (Bilder immer, Session-Commit ab 1 Auflage, Legacy-Pfad gleich), Lernpaare
