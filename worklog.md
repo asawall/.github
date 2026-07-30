@@ -4,6 +4,26 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-30 (2) — Doktrin-Umkehr Mass-Hoheit (botmatiq 4d19436/16a5a39/c6ccba8): AMOR
+  absolut, Hierarchie amor>manual>vision (DimensionAuthority+Bestandsheuristik), Einlernen
+  bricht nie ab (Bilder immer, Session-Commit ab 1 Auflage, Legacy-Pfad gleich), Lernpaare
+  Ref*/RefSource + MeasurementBias (Median je Kante, Klemme ±3mm, ab 5 Paaren), Handmessung
+  lengthMm/widthMm/heightMm am Commit + UI-Felder, Artikelstamm dimensionSource/
+  referenceImageCount/hasReferenceImages + Einlernen-Button /vision?pzn=, manual-Stempel bei
+  Massaenderung (PUT/POST/CSV/PATCH). Schema+Cloud-Wire additiv, Suite 1162/1162,
+  Spec_Addendum_Dimension_Provenance. CI-FIX: rollup exakt 4.46.4 (resolutions) — 4.47+
+  fordert GLIBC>=2.32, Runner hat 2.31; erster gruener CI seit dabb30c. IPC-DEPLOY 0.0.90:
+  Klinik-LAN blockt 443/GitHub -> hosts-Eintrag 10.99.0.1 admin.botmatiq.de (WG-Tunnel),
+  AllInOne -SkipImport; robocopy exit 9 = FEHLER 32 auf repo\plc\.vs (TcXaeShell-Index) ->
+  Apply-Backup /XD .vs bundle-latest plc-refresh + /XF Bundle-ZIP (c6ccba8, IPC lokal
+  gepatcht). DATENFIX SQL: 17923772=110x60x40/92g, 11350016=105x95x40/159g, source=manual
+  (Bundle-CSV ist Quelle — processed leer, nie ARTIKEL.ART-Import gelaufen), Fehl-Messungen
+  Accepted=f manual-reference + Ref-Lernpaare, SyncStatus pending. Legacy-Taster speichert
+  nur R1-Bilder als DB-Zeilen (6 statt 18; alle Dateien vorhanden, CapturePathsJson). AMOR-
+  Share: 445 offen, aber Fehler 67 (\\cvb-app-12\aescudata existiert nicht) + 53 bei net
+  view — exakter UNC-Pfad von Beyer noetig. CD 16a5a39 success = Doktrin live in Cloud.
+  ef89d48 = Andreas FieldCount-Fix aus Parallelsession (kein Konflikt).
+
 - 2026-07-29 (2) — Merseburg SPS-Scharfschalt-Paket (botmatiq 6b7ae64): PDF-Vollabgleich
   gegen finales EPL23032026 (142 Bl.) — alle 80 GVL_IO-Adressen deckungsgleich Blatt 16/16.1.
   BEFUND-KORREKTUREN: Behaelterkette liegt in G8.0 NICHT G6.0 (falsche K-2-Kommentare in
