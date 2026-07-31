@@ -4,6 +4,26 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-31 (3) — KORREKTUR zu (2) + finaler Stand Nummernwelten: Eintrag (2) enthielt
+  von mir faelschlich als Erfolg verbuchte Zahlen (der 0.0.94-Lauf endete real im
+  Versions-Gate; "298 neu/651 akt." und AmorNrn 1004479/1004102 waren nie Realitaet).
+  Tatsaechliche Kette: 0.0.94-Lauf-2 stempelte mangels Cleanup (psql-Inline-Quoting
+  kaputt -> DELETE lief nie; seither ALLE psql-Aufrufe via -f Datei) die Duplikate
+  (0 neu/949 akt.); 0.0.95 (3030d45) Lauf-Cache gegen datei-interne Wiederholungs-
+  zeilen (ARTIKEL.ART fuehrt AmorNr mehrfach, ~400 distinct auf 949 Zeilen), Lauf
+  ergab 396/553 aber Bruecke griff nicht: ArtikelbarcodePzn in ARTIKEL.ART dupliziert
+  nur die AMOR-Nr — echte PZN/EAN kommen aus BARCODE.DAT (len8-PZNs/EAN13). 0.0.96
+  (07401b6): BARCODE.DAT-Vorablesung als Map amorNr->Barcodes, Bruecke ueber alle
+  Barcodes, PickPznFromBarcodes (Rohformat 7/8 Ziffern), Suite 1178/1178. Robocopy-
+  exit-11-Zwischenfall (FEHLER 32 Core.exe trotz Kill+Watchdog-Pause+Recovery-Disable
+  = nachlaufendes Handle/Defender) -> /R:20 /W:3 (ff8b756). ENDSTAND nach Cleanup+
+  Re-Import auf 0.0.96: ARTIKEL 67 echte Neue + 882 aktualisiert (949 Zeilen),
+  BARCODE 529, ARTFACH 402; admin-Bestand 746 mit 332 AmorNr/334 Lagerort/73 amor-
+  Massen; Nullprobe 0, distinct 67/67. Fix-PZNs real: 17923772->AmorNr 34915,
+  11350016->34440 (beide manual, Andreas-Handwerte); 00010808->14867. ARTFACH
+  liefert Rohcodes (z.B. 00410000) als ShelfLocation — Anzeige-Mapping offen.
+  NEU offen: Einlernbox-Kameras nach 0.0.96-Update nicht gefunden (Diagnose laeuft).
+
 - 2026-07-31 (2) — ZWEI NUMMERNWELTEN geloest: Stammdaten-Erstimport (Testexport 08.06.)
   legte 949 Duplikate an — ARTIKEL.ART Spalte 1 ist die interne AMOR-Warenwirtschafts-
   nummer (1000441…), NICHT die PZN; echte PZN im Barcode-Feld (Pos 144), .auf-Positionen
