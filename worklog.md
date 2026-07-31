@@ -4,6 +4,23 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-31 (2) — ZWEI NUMMERNWELTEN geloest: Stammdaten-Erstimport (Testexport 08.06.)
+  legte 949 Duplikate an — ARTIKEL.ART Spalte 1 ist die interne AMOR-Warenwirtschafts-
+  nummer (1000441…), NICHT die PZN; echte PZN im Barcode-Feld (Pos 144), .auf-Positionen
+  referenzieren die AMOR-Nr. Fix b0a3ad0 (Bundle 0.0.94, Suite 1173/1173):
+  article_master.AmorArtikelnummer (additiv+Index) + Lookup-Kaskade AmorNr -> Barcode-
+  Bruecke PZN/PZN2/PZN3 -> PZN-Formen (rueckwaertskompatibel Felde-Testdaten) in
+  ARTIKEL/BARCODE/ARTFACH (Resolver internal, AmorStammLookupTests 11 Tests);
+  OrderItems.PZN wird via AmorNr auf echte PZN aufgeloest (Handheld/Vision/Bilder
+  positionsseitig intakt), AmorArtikelnummer bleibt roh fuer die Rueckmeldung.
+  IPC: Update 0.0.94, 949 Duplikate geloescht (Filter amor-v6 + AmorArtikelnummer IS
+  NULL), Re-Import: ARTIKEL 298 neu + 651 aktualisiert (=Brueckenzahl), BARCODE 396,
+  ARTFACH 402 -> Altbestand traegt AmorNr (651/746) + Lagerorte (396) + 77x amor-Masse.
+  Fix-PZNs: 17923772 AmorNr 1004479 bleibt manual (AMOR ohne Masse), 11350016 AmorNr
+  1004102 jetzt amor 105x95x40 (identisch zur Handmessung — doktrin-korrekt).
+  00010808 -> AmorNr 1001040, Lagerort 2.1. Offen: frische Stammdaten + Live-Testauftrag
+  von Felde (Export ist vom 08.06.), formale Bestaetigung E01-Verbuchung 20.07.
+
 - 2026-07-31 (1) — AMOR-Share Merseburg PRODUKTIV: Fehlerbild 86/67 = fehlende DOMAENE,
   Auth klinikum-merseburg.lan\svc_batchflow (Vault-PW korrekt, keine Rotation); DNS-FQDN
   cvb-app-12.klinikum-merseburg.lan -> 10.53.20.16 vorhanden, Kurzname weiter via hosts.
