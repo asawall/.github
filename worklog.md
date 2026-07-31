@@ -4,6 +4,20 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-31 (1) — AMOR-Share Merseburg PRODUKTIV: Fehlerbild 86/67 = fehlende DOMAENE,
+  Auth klinikum-merseburg.lan\svc_batchflow (Vault-PW korrekt, keine Rotation); DNS-FQDN
+  cvb-app-12.klinikum-merseburg.lan -> 10.53.20.16 vorhanden, Kurzname weiter via hosts.
+  Beyer-Rechte (Aendern) verifiziert (Anlegen+Listing+Loeschen), .env-Overrides Z25/26
+  entfernt, Dienst-Log: DropFolder=UNC, keine Fehler. DATEIKUNDE: LIEF<nr>.dat = AMOR-
+  AUSGABE (Lieferschein-Kopfsaetze 254B/Zeile, alle Zeilen identisch, keine Positionen)
+  -> ignorieren, KEIN Scanner-Ausbau; Archiv/*.E0x.OLD<ts> = AMOR archiviert unsere
+  Rueckmeldungen -> E01-Gegentest de facto bestanden (10000017.E01 20.07. 08:28 verarbeitet,
+  LIEF 08:59 erzeugt). Testexport 08.06. (ARTIKEL/BARCODE/ARTFACH/CHARGE) liegt fuer
+  Stammdaten-Erstimport bereit (Block geliefert: Kopie in Root -> Ingest -> Verify inkl.
+  ShelfLocation/DimensionSource). UI-Fixes 30.07. spaet: MeasureSession immer sichtbar
+  (Operator+, f734352) + Banner drei Zustaende statt ABGELEHNT (3a5628a), Bundle
+  dispatched. Doku: Spec_Addendum_Amor_Share_Merseburg.md. Memory #12 ersetzt.
+
 - 2026-07-30 (3) — AMOR-Austauschpfad Merseburg: Klinik-LAN blockt 443/GitHub; DNS
   fuer cvb-app-12 fehlt -> hosts 10.53.20.16 (+ hosts 10.99.0.1 admin.botmatiq.de fuer
   Cloud via WG). Share \\cvb-app-12\aescudata existiert (Fehler 67 war DNS/Credential),
