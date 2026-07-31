@@ -4,6 +4,23 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-07-31 (4) — ARTFACH-ROSETTA + Kamera-Befund: (a) Einlernbox komplett offline,
+  Ursache HARDWARE: PoE-Switch in der Visionbox abgeraucht (Progression 08:09 zwei
+  Cams -> 11:24 drei -> mittags alle sechs; X104 up, USW .2 pingbar). Ersatz:
+  beliebiger unmanaged 8-Port-PoE+ (z.B. TL-SG1008P), Einbau KW33. (b) Band/Slot-
+  Herkunft final geklaert via AMOR-SBKA-Maske (Andreas vor Ort): Lagerfachbereich
+  UND Zusatz werden IN AMOR gepflegt; Zusatz = Uebergabe 'Band.Oeffnung' (Slot nur
+  1-2). Export-Rosetta: '00110000' = [0,3) Bereich '001' + [3] konstant '1' + [4,8)
+  Zusatz (im 08.06.-Export noch LEER — Apo pflegt seit Juli; Allopurinol Juni-Bereich
+  011 -> heute 007 = Umpflege). CSV-'Uebergabe B.S'-Notes stammen aus AMOR-Report
+  'Artikelmasse fuer Kommissionierer' (24.07.). Fix 0.0.97/634b1ff: Reader splittet
+  ARTFACH (Lagerfachbereich/Zusatz), ShelfLocation lesbar wie Maske, Belt/Slot via
+  ParseUebergabeZusatz (tolerant 1.1/1,1/11/1100; Tests, Suite 1190/1190). Interim-
+  Block 12b: Belt/Slot aus Report-Notes (746 Artikel, Stand 24.07.); Gruppen-
+  Ableitung verworfen (Juni-Bereiche teils umgepflegt). WICHTIGSTER OFFENER PUNKT:
+  frischer AMOR-Komplettexport mit gepflegten Zusaetzen (Apo/Felde) -> danach ist
+  die Kette AMOR->Botmatiq fuer Lagerort+Uebergabe vollautomatisch.
+
 - 2026-07-31 (3) — KORREKTUR zu (2) + finaler Stand Nummernwelten: Eintrag (2) enthielt
   von mir faelschlich als Erfolg verbuchte Zahlen (der 0.0.94-Lauf endete real im
   Versions-Gate; "298 neu/651 akt." und AmorNrn 1004479/1004102 waren nie Realitaet).
