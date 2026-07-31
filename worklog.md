@@ -16,7 +16,8 @@
   'Artikelmasse fuer Kommissionierer' (24.07.). Fix 0.0.97/634b1ff: Reader splittet
   ARTFACH (Lagerfachbereich/Zusatz), ShelfLocation lesbar wie Maske, Belt/Slot via
   ParseUebergabeZusatz (tolerant 1.1/1,1/11/1100; Tests, Suite 1190/1190). Interim-
-  Block 12b: Belt/Slot aus Report-Notes (746 Artikel, Stand 24.07.); Gruppen-
+  Block 12b AUSGEFUEHRT: 746 gesetzt (36/58/103/103/91/98/169/88 auf 1.1-4.2,
+  73 NULL = AMOR-Neue+learn-station ohne Notes), Allopurinol+ACC beide 1/1; Gruppen-
   Ableitung verworfen (Juni-Bereiche teils umgepflegt). WICHTIGSTER OFFENER PUNKT:
   frischer AMOR-Komplettexport mit gepflegten Zusaetzen (Apo/Felde) -> danach ist
   die Kette AMOR->Botmatiq fuer Lagerort+Uebergabe vollautomatisch.
