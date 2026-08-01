@@ -710,3 +710,28 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   stamm-Import uebersprungen (Abschlusstext "importiert" irrefuehrend);
   pruefen ob 746 Artikel aus frueherem Lauf vorhanden, sonst Import mit
   rotiertem Login nachholen. AllInOne-Todo: Login konfigurierbar machen.
+2026-08-01 (Session 2) BOTMATIQ SOFTWARE-SPUR:
+  VISION-FREEZE (Andreas-Vorgabe, VERBINDLICH): Kein Umbau an Vision
+  Backend/Frontend und keine Vision-Datenbereinigung, bis die Apotheke
+  in KW32 ALLE Artikel eingelernt hat (Prozess: Mitarbeiter kontrollieren
+  in der Artikeldatenbank haendisch Masse/Lagerort/Band+Oeffnung, dann
+  Einlernen je Medikament -> Referenzfotos). Lactulose-Altwert erst danach.
+  DATENGRUNDLAGE VERIFIZIERT: LearnSyncPusher schiebt learn_measurements
+  (Masse) UND article_learn_images (Multipart) automatisch in die Cloud
+  (/api/ingest/v1/learn-measurements, IncludeImages=true, 1000/Run);
+  manuelle Masse via Provenienz amor>manual>vision geschuetzt (4d19436).
+  -> AUFTRAG KW32 (cloud-seitig, ohne IPC-Eingriff): Mass-Extraktions-
+  modell aus ~745 (Bild,Referenzmass)-Paaren; Regression/Bias je Form-
+  klasse + LOO-Validierung, danach ML-Regressor; Hoehe bleibt schwach
+  konditioniert -> Modell liefert Korrektur+Konfidenz auf Hull-Basis.
+  Rollout erst NACH Einlernende als normales Bundle.
+  BLOCK A MERSEBURG: Ops-Login in .env ergaenzt; Artikelstamm 819 gesamt/
+  399 AmorNr/746 mit Uebergabe; KONSISTENZ 8/8 OK (alle TransferBelt.Slot
+  == aktive transfer_openings 1.1-4.2); appsettings.merseburg aktuell==.bak
+  (Merge hat nichts weiter beschaedigt; Pin-Ausfall kam von ersetzter
+  Base-appsettings -> durch .env-Pin + [6b/9]-Verify abgedeckt).
+  BARCODE FELDE (Ibuflam/34673): Code128 PZN 08533836 verarbeitbar
+  (PznUtil.Canonical strippt fuehrende Nullen einheitlich); PDF-Textlayer
+  taeuschte 'nicht gerendert' vor — Screenshot zeigt gerenderten Code,
+  Draft korrigiert. Publish fuer 7eaf8da dispatcht (Login-Fix im Bundle);
+  AllInOne-Laeufe erst nach Versionsmeldung.
