@@ -735,3 +735,16 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   taeuschte 'nicht gerendert' vor — Screenshot zeigt gerenderten Code,
   Draft korrigiert. Publish fuer 7eaf8da dispatcht (Login-Fix im Bundle);
   AllInOne-Laeufe erst nach Versionsmeldung.
+  NACHTRAG PZN-BEFUND (01.08.): Felde-Testbarcode 08533836 = IBU 600
+  1A Pharma 100 St (Web-verifiziert) — Stamm fuehrt fuer AMOR-Nr 34673
+  die Lichtenstein-PZNs 06313409/06313415 (PZN2=Dublette von PZN),
+  08533836 nirgends im Stamm. Ursache: Lieferantenwechsel ohne
+  BARCODE.DAT-Nachpflege. Scan wuerde NotInAmor-Neuartikel anlegen
+  (Design faengt das ab, naechster Import entflaggt). -> Mail an Felde:
+  Zuordnung 34673<->08533836 in AMOR pflegen; generell vor Einlern-Start
+  (KW32) die im Haus liegenden Packungs-PZNs je Artikel verknuepfen.
+  Scan-Pfad verifiziert robust: ResolveArticleAsync matcht LookupForms
+  gegen PZN/PZN2/PZN3/ScanBarcode. B64-Sicherung erzeugt (Vault-Upload
+  durch Andreas: APPSETTINGS_MERSEBURG_B64). Bundle 0.0.98 (7eaf8da,
+  Publish Run 98) in Arbeit — AllInOne freigegeben sobald Liste 0.0.98
+  zeigt.
