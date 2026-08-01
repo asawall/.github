@@ -748,3 +748,14 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   durch Andreas: APPSETTINGS_MERSEBURG_B64). Bundle 0.0.98 (7eaf8da,
   Publish Run 98) in Arbeit — AllInOne freigegeben sobald Liste 0.0.98
   zeigt.
+  ABNAHME 01.08. 17:4x: IPC laeuft bestaetigt auf 0.0.98.0 (FileVersion-
+  Check). Ship-15-Log verifiziert Serverbestand 0.0.96/0.0.97/0.0.98
+  (Retention ok); D2-Lauf nutzte die 0.0.98-Skripte ([6b/9] lief:
+  TenantSlug merseburg, ServicePin, SyncToken OK). SOFTWARE-SPUR FUER
+  KW32 ABGESCHLOSSEN: Anlagenkonfig konsistent, UI konsolidiert,
+  Update-Pipeline gehaertet, AMOR-Nachtimport + Oeffnungs-Konsistenz
+  verifiziert, Scan-Pfad einlern-robust, Learn-Sync (Masse+Bilder)
+  aktiv. OFFEN BEI ANDREAS: Felde-Mail senden (34673<->08533836 vor
+  Montag), Vault-Upload APPSETTINGS_MERSEBURG_B64. CLAUDE KW32:
+  Cloud-seitiges Mass-Extraktionsmodell auf learn_measurements +
+  article_learn_images (kein IPC-/Vision-Eingriff, Freeze gilt).
