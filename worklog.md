@@ -759,3 +759,13 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   Montag), Vault-Upload APPSETTINGS_MERSEBURG_B64. CLAUDE KW32:
   Cloud-seitiges Mass-Extraktionsmodell auf learn_measurements +
   article_learn_images (kein IPC-/Vision-Eingriff, Freeze gilt).
+  LEARN-NIGHTLY EINGERICHTET (01.08. 18:30): Workflow learn-model-nightly
+  (Cron 03:15 UTC + dispatch, Commit 32b2c5f) kopiert deploy/learn-model/
+  nightly.sh auf den Cloud-Server und fuehrt aus: Discovery aller Learn-
+  Tabellen (alle PG-Container) + Learn-Bildordner unter /mnt/data/botmatiq,
+  Zaehlung gesamt/heute, Spaltenlisten, Report nach learn-model/reports/
+  YYYY-MM-DD.md (+latest.md), Telegram-Kurzmeldung. ERSTLAUF GRUEN
+  (Report 2026-08-01.md, Telegram gesendet). Claude-Sessions laufen NICHT
+  selbsttaetig -> Automatik liegt bewusst im Cron; v2 (Bias-Fit + LOO auf
+  den im Report sichtbaren Tabellen) wird per Commit nachgeschaerft, wenn
+  Andreas die naechste Session startet. Kein IPC-/Vision-Eingriff.
