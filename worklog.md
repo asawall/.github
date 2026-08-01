@@ -769,3 +769,8 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   selbsttaetig -> Automatik liegt bewusst im Cron; v2 (Bias-Fit + LOO auf
   den im Report sichtbaren Tabellen) wird per Commit nachgeschaerft, wenn
   Andreas die naechste Session startet. Kein IPC-/Vision-Eingriff.
+  REMINDER EINGERICHTET: Workflow reminder-modellarbeit (Cron 13:00 UTC
+  am 07.08., ubuntu-latest, Datums-Guard 2026) sendet Fr 07.08. ~15:00
+  die Telegram-Erinnerung "Modellarbeit durchziehen" (v2 Bias-Fit+LOO).
+  TODO nach 07.08.: Workflow-Datei entfernen (erledigt Claude in der
+  Modellarbeits-Session).
