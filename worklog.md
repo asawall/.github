@@ -4,6 +4,19 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-02 (2) — botmatiq v4.0.7 (376f1e7): AMOR-Ingest sichtbar. Felde-Befund
+  (Dateien Fr automatisch abgeholt, UI zeigte nichts): order:ingested via
+  PlcStateStore.EmitOrderEvent (AmorV6Ingest+FolderWatcher, additiv) -> globaler
+  Toast + Sofort-Refresh OrdersPage; Datum+Zeit in Historie-Spalten (war nur Zeit);
+  OrderHistoryPurgeService + POST /orders/purge-history (Service/Admin, Confirm
+  HISTORIE-LOESCHEN, Audit ORDER_PURGE, InMemory-Weiche RemoveRange) + roter
+  UI-Button — loescht Bewegungsdaten inkl. PickBatch-Waisen, behaelt Audit/
+  Artikelstamm/Einlern-Captures(OrderId=null). Suite 1194/1194, i18n DE/EN/FR.
+  ACHTUNG Frontend: store/index.ts ist TOTER Zweitbestand — aktiv ist src/store.ts
+  (App.tsx importiert './store'); Events dort verdrahten. Deploy: update407-Block
+  (stats-Poll -> AllInOne -SkipImport! Bundle-CSV wuerde AMOR-Masse vom 31.07.
+  manual ueberstempeln -> Health 4.0.7 -> Purge via Ops-Login -> Verify).
+
 - 2026-07-31 (4) — ARTFACH-ROSETTA + Kamera-Befund: (a) Einlernbox komplett offline,
   Ursache HARDWARE: PoE-Switch in der Visionbox abgeraucht (Progression 08:09 zwei
   Cams -> 11:24 drei -> mittags alle sechs; X104 up, USW .2 pingbar). Ersatz:
