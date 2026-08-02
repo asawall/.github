@@ -4,7 +4,17 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
-- 2026-08-02 (2) — botmatiq v4.0.7 (376f1e7): AMOR-Ingest sichtbar. Felde-Befund
+- 2026-08-02 (2) — botmatiq v4.0.7+v4.0.8: AMOR-Ingest & Plaene sichtbar. v4.0.8
+  (8b6da85): "Batch optimieren"-Befund (9x Auftrag 5, Behaelter 1-9 von 37, je 22
+  Schachteln) war KEIN Composer-Bug: ~800 Schachteln Sollmenge auf 3 Positionen,
+  Artikel ohne Masse -> Fallback 250ccm; BFL-Default nutzbar 5500ccm (33000x30%
+  minus 4400 Fardelage) -> exakt 22/Wanne -> 37 Wannen; ESTIMATED/EXCEEDS-
+  Warnungen wurden gespeichert aber nie angezeigt. Fix: GetPlanAnnotationsAsync,
+  pick-runs-DTO additiv planWarnings+dimensionsEstimated, Warnbanner+Badge im UI.
+  Suite 1202/1202. update407 lief (4.0.7 live, AmorV6 auf UNC) aber Purge brach
+  am falschen Health-Check ab (/health existiert nicht, richtig: /api/v1/health/
+  live bzw. EXE-VersionInfo) -> update408-Block holt Purge nach + Diagnose-Beleg.
+  v4.0.7 (376f1e7): AMOR-Ingest sichtbar. Felde-Befund
   (Dateien Fr automatisch abgeholt, UI zeigte nichts): order:ingested via
   PlcStateStore.EmitOrderEvent (AmorV6Ingest+FolderWatcher, additiv) -> globaler
   Toast + Sofort-Refresh OrdersPage; Datum+Zeit in Historie-Spalten (war nur Zeit);
