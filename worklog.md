@@ -14,6 +14,10 @@
   Suite 1202/1202. update407 lief (4.0.7 live, AmorV6 auf UNC) aber Purge brach
   am falschen Health-Check ab (/health existiert nicht, richtig: /api/v1/health/
   live bzw. EXE-VersionInfo) -> update408-Block holt Purge nach + Diagnose-Beleg.
+  ERGEBNIS 18:02: v4.0.8 live auf IPC, Diagnose-Beleg exakt wie berechnet
+  (Auftrag 5 = Zolpidem 100 + Ibuflam 500 + ASS 200 = 800 Schachteln, alle 3
+  ohne Masse), Purge 115 Zeilen (5 Orders/42 Plaene/7 Laeufe/32 Slots),
+  Historie 0. Merseburg-DB ist sauber fuer den Produktivstart.
   v4.0.7 (376f1e7): AMOR-Ingest sichtbar. Felde-Befund
   (Dateien Fr automatisch abgeholt, UI zeigte nichts): order:ingested via
   PlcStateStore.EmitOrderEvent (AmorV6Ingest+FolderWatcher, additiv) -> globaler
