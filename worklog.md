@@ -4,6 +4,17 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (5) — LAGERORTE FINAL (13:22, Beweis statt Annahme): Freitag-Kopie
+  01.08.T00-30 (Nacht Fr->Sa, VOR Sa-Schaden) geladen und diagnostiziert:
+  Fr-Endstand hatte 813 Lagerorte (nicht nur die 399 aus Juni-ARTFACH — am Fr
+  wurde massiv nachgepflegt; Alprazolam Fr='007' statt Juni-'011'!). Fuellender
+  Restore (COALESCE, Backup gewinnt wo gefuellt, nichts geleert, Belt/Slot
+  unangetastet): live jetzt 902 mit Lagerort, nur 100 ohne (Liste als CSV fuer
+  Poppitz: C:\Botmatiq\ops\lagerort-fehlend.csv — die hatten auch am Fr
+  keinen). Poppitz-Beispiele exakt auf Fr-Werten: Amoxicillin 013/1.2,
+  Aprepilor 017/1.2. Vision aktiv 103 (Poppitz lernt laufend ein). Lehre:
+  Klinik-Egress braucht beim ERSTEN HTTPS-Connect oft 42s-Timeout -> alle
+  IPC-curl-Aufrufe mit Retry-Schleife bauen.
 - 2026-08-03 (4) — v4.0.10 LIVE auf IPC (10:52, ERGEBNIS OK): Schutz aktiv
   (CSV-Merge-Semantik, AllInOne-Import nur -WithImport, Slot 1-2 erzwungen,
   clear-all Confirm+Audit, /articles+/vision Operator+). Einlern-Merge lief
