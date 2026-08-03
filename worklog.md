@@ -878,3 +878,5 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
 **Mengen-Check Auftrag 10000019:** 620 Schachteln = 20+500+100, Parser validiert Kopfsumme; 23 Behälter bei realen AMOR-Maßen plausibel (~27/Behälter); Mirta TAD 15mg Sollmenge 500 fachlich auffällig → Rückfrage an Felde empfohlen. EXCEEDS_STELLPLAETZE-Banner (23>9) korrekt.
 
 **Offen:** produktiv-check-Block hat zwei Schönheitsfehler für künftige Kopien: `p."ItemsJson" LIKE` braucht `::text`-Cast (jsonb), und error/-Check muss auf `C:\Botmatiq\data\amor\error` zeigen (nicht `$drop\error`).
+
+**Rollout-Ergebnis update411 (15:44–15:52):** v4.0.11 live, varchar(64) bestätigt. Re-Ingest der error/-BARCODE.DAT: 1.247 Zeilen gelesen, 700 Zusatz-Barcodes übernommen (PZN2 396→919, PZN3 137→314 — 523+177=700, exakt konsistent), error/ leer. Ursachen-Beleg: genau 1 Barcode >20 Zeichen im Bestand — diese eine Zeile riss vor dem Fix jedes Mal die ganze Datei. Kein Überlängen-Guard und kein Rescue-Fallback nötig (64 deckt alle 30-Byte-Barcodes).
