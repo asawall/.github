@@ -936,3 +936,20 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
   request_terminate_timeout WIRD via system defaults in alle Pools uebernommen (108 bestaetigt). Rollback = Datei loeschen + rebuild.
 - Haertungs-Includes (pre_main_global: Timeout/ProxyTimeout/reqtimeout; pre_virtualhost_global: xmlrpc deny) UEBERLEBEN rebuildhttpdconf.
   Nach jedem Schritt alle 60 Domains gegen $BK/baseline.tsv geprueft (Regression = war <500, jetzt 000/>=500 -> Auto-Rollback).
+
+
+### imunify360 WebShield ist seit 03.08.2026 AKTIV (Edge-Bot-Schutz) — Konsequenzen fuers Monitoring
+- WebShield fordert bot-artige/hochfrequente Requests mit JS-Challenge; CAPTCHA_DOS blockt eine IP nach 100
+  Fehlversuchen in 6h fuer bis zu 10 Tage. Folge: curl/uptime-Checks OHNE JS bekommen 503, obwohl die Site
+  gesund ist (Loopback direkt-zu-Apache = 200). NICHT mit Ausfall verwechseln!
+- Debug-Muster bei "extern 503 / intern 200": (a) Loopback `curl -H Host: <d> https://127.0.0.1/` -> 200 = App ok;
+  (b) Edge ueber public IP `curl --resolve <d>:443:88.99.195.89 https://<d>/` -> zeigt echte Edge-Antwort;
+  (c) 503 nur von EINER IP = die IP ist bei WebShield/CAPTCHA_DOS geflaggt, echte User sind ok.
+- Ops/Monitoring-IPs in imunify-Whitelist (sonst falsche CRIT-Alarme): 46.224.164.200 (KAI), 178.104.211.135
+  (runner), 49.13.142.247 + 5.9.112.153 (botmatiq), 127.0.0.1. Befehl: `imunify360-agent whitelist ip add <ip> --comment ops`.
+  imunify whitelistet legitime Such-Bots automatisch (24h).
+- dashboard.kingdom-hosting.de: Custom-App, Root `/` = 404 (kein Routing), Entry `/auth.php` = 302 -> das ist NORMAL.
+- OFFEN/separat (NICHT durch diese Arbeit verursacht): nextcloud.kingdom-hosting.de reisst unter DAV-Last die
+  CloudLinux LVE Entry-Process-Grenze des Users 'andreas' (mod_hostinglimits: MHL-E2BIG, LVE entry processes limit).
+  LVE isoliert korrekt (kein Server-Ausfall mehr), aber einzelne Nextcloud-Requests koennen 503en. Ggf. EP-Limit
+  fuer 'andreas' anheben: `lvectl set <uid> --ep=<n>` bzw. CloudLinux-Package-Limits (WHM -> LVE Manager).
