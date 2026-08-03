@@ -873,3 +873,18 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
 - Ops-Zugang Hosting: One-shot-Workflow in infra-monitoring (Runner gha-infra-monitoring-1),
   `/home/runner/.ssh/deploy_ed25519` -> root@88.99.195.89. Remote-Ausgabe base64-verpackt zurueckgeben
   (GHA maskiert sonst mehrstellige Zahlen wie "22" -> ***).
+
+
+### cPanel per-Domain userdata-Includes werden auf 88.99.195.89 NICHT angewandt (03.08.2026)
+- Symptom: Datei unter /etc/apache2/conf.d/userdata/{std,ssl}/{2,2_4}/USER/DOMAIN/*.conf +
+  `ensure_vhost_includes --user=USER` + `rebuildhttpdconf` meldet "Built OK", aber die Direktiven
+  landen NICHT in der gebauten httpd.conf (grep-Marker == 0), Wirkung bleibt aus. Beide Versions-
+  dirs ("2" legacy + "2_4" EA4) existieren, beide wirkungslos. Ursache nicht final geklaert
+  (Distiller ignoriert/quarantaeniert die Includes still).
+- Fix: Domain-spezifische Apache-Direktiven ueber den GLOBALEN Admin-Include
+  /etc/apache2/conf.d/includes/pre_virtualhost_global.conf setzen und per
+  `<If "%{HTTP_HOST} =~ /^regex$/">` auf die Domain scopen. Admin-Includes greifen zuverlaessig
+  (xmlrpc-Deny + easyconcerts-403 beide live verifiziert). `RedirectMatch 403` (mod_alias) ist
+  override-sicher gegen WP-.htaccess; `<Location> Require all denied` kann durch AllowOverride/
+  .htaccess unterlaufen werden (bzw. lud hier gar nicht). ACME immer freihalten:
+  `^/(?!\.well-known/acme-challenge/)`.
