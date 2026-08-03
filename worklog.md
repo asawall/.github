@@ -4,6 +4,17 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (7) — HOSTING-HAERTUNG Teil 2 (WebShield + MPM event + Worker/FPM), je mit Backup davor/danach
+  + Offsite + Full-Verify aller 60 Domains + Auto-Rollback. Ergebnis: 0 Regressionen, alle Domains 200/301/403 wie Baseline.
+  Backups: /root/ops-backups/pre-harden-20260803-195603 + post-harden-20260803-201918 (+ /mnt/storagebox-nc/ops-backups/*.tar.gz);
+  Prefork-Rollback-Profil: /root/ops-backups/rollback-prefork-profile.json.
+  (1) imunify360 WEBSHIELD.enable=true + WORDPRESS.waf_default=true + ai_bot_protection=true(balanced) -> Edge-Schutz aktiv.
+  (2) Apache MPM prefork->event: `dnf -y install ea-apache24-mod_mpm_event ea-apache24-mod_cgid --allowerasing`
+      (CloudLinux-Falle: mod_cgi verlangt mpm=forked -> mod_cgi MIT nach cgid tauschen!), dann rebuildhttpdconf + restart. Server MPM=event.
+  (3) MaxRequestWorkers 150->400 via post_main_global.conf (<IfModule mpm_event_module>, cPanel hatte 150 uebernommen);
+      FPM /var/cpanel/ApachePHPFPM/system_pool_defaults.yaml NEU (pm_max_requests:500, request_terminate_timeout:120s) -> php_fpm_config --rebuild, in 108 Pools aktiv.
+  Endzustand: MPM=event, MaxRequestWorkers=400, Timeout/ProxyTimeout=60, reqtimeout+xmlrpc-deny aktiv, WEBSHIELD/WP-WAF/AI-Bot=on, FPM rtt=120s, ops-connlimit aktiv.
+
 - 2026-08-03 (7) — HOSTING HAERTUNG 1/2/3 auf server.kingdom-hosting.de (88.99.195.89), jeder Schritt mit
   Backup davor+danach (Config + EA4-Profil; Offsite /mnt/storagebox-nc/ops-backups/{pre,post}-harden-*.tar.gz)
   und Vollverifikation ALLER 60 vhosts gegen baseline.tsv + Auto-Rollback -> 0 Regressionen in jedem Schritt:
