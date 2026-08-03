@@ -819,3 +819,11 @@ als `staging-backup-20260729`. Regel: staging = main + zu testende Commits.
   (count < N -> Abbruch), bevor irgendein UPDATE/DELETE auf Livedaten laeuft — der
   v2-Block lief mit 0 geladenen Zeilen weiter und nur Glueck (Sanity traf ohnehin
   falsche Werte) verhinderte Schaden.
+
+### Botmatiq-IPC: Dienst-Logs liegen unter C:\Botmatiq\logs, NICHT data\logs
+- **Symptom**: Log-Checks in Ops-Blocks (Select-String auf C:\Botmatiq\data\logs\*.log)
+  liefen mehrfach still ins Leere ("Pfad nicht vorhanden") — AmorV6-Logzeilen-
+  Verifikationen zeigten deshalb nie etwas, ohne dass es auffiel.
+- **Fix**: C:\Botmatiq\logs\ verwenden (dort liegt auch db-backup.log). Und:
+  Log-Checks nie mit -ErrorAction SilentlyContinue verschlucken, sonst ist die
+  Verifikation wertlos.
