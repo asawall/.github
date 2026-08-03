@@ -833,3 +833,43 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
 
 ## Tag-Push-Race mit Dependabot
 `git push origin main v4.0.11` ist NICHT atomar: läuft parallel ein Dependabot-Merge, kann der Tag durchgehen während main rejected wird — der Tag zeigt dann auf einen Orphan und CI baut daraus. Fix: rebase, `git tag -f`, `git push -f origin <tag>`. Besser: main pushen, DANN erst taggen.
+
+
+### httpd "down" auf dem cPanel-Hosting (88.99.195.89) = fast immer Worker-Exhaustion, nicht httpd tot (03.08.2026)
+- Symptom: chkservd/Monitoring meldet httpd failed, planning-x/kingdom-hosting "HTTP no-response".
+  httpd laeuft aber (systemctl active, lauscht 0.0.0.0:80/443) — NUR: Loopback `curl 127.0.0.1`
+  haengt ebenfalls (HTTP 000, Timeout). `pgrep -c httpd` == MaxRequestWorkers+1 (hier 151) = alle
+  Worker fest. Ressourcen unauffaellig (Load niedrig, RAM frei, kein OOM) — KEIN Ressourcenproblem.
+- Cause: ein PHP-FPM-Pool (oft ein Fremd-User-WordPress) saettigt/verlangsamt unter Bot-Flood
+  (POST /xmlrpc.php, /wp-login.php, /?rest_route=/batch/v1) -> Apache-Prefork-Worker blockieren beim
+  Proxy auf den FPM-Socket, und `Timeout 300` haelt jeden gestauten Worker 5 min -> Worker-Pool
+  erschoepft -> ALLE vhosts + chkservds eigener 127.0.0.1:80-Health-Check tot. Noisy-Neighbor.
+- RED HERRING (fuehrte mich zuerst fehl): error_log voll mit `AH01102 error reading status line from
+  remote server 127.0.0.1:80` (Self-Proxy-Timeout). Das ist FOLGE der Saettigung (cPanel-autodiscover-
+  [P]-Regeln, ~92, bekommen ihren internen 127.0.0.1:80-Subrequest im gesaettigten Zustand nicht mehr
+  bedient), NICHT Ursache. Gegencheck self-loop-Conns (`ss -Htn` peer==127.0.0.1:80) == 0 = kein Loop.
+- Entscheidungstest Flood vs. interner Deadlock (additiv, reversibel): extern 80/443 droppen, Loopback
+  offen: `iptables -I INPUT 1 -i lo -j ACCEPT; iptables -I INPUT 2 -p tcp -m multiport --dports 80,443
+  -j DROP`, httpd-Restart, Loopback testen. 200 in ~7ms -> Flood. Weiter Timeout -> interner Deadlock.
+  ZWINGEND `trap cleanup EXIT`, damit die DROP-Regel garantiert wieder faellt (sonst Sites dicht).
+- Firewall dieser Box: CSF ist NICHT installiert (`command -v csf` leer; `systemctl is-active csf` gibt
+  "inactive" weil Unit fehlt — NICHT mit "gestoppt" verwechseln). Firewall/WAF = imunify360. imunify
+  DOS+ENHANCED_DOS waren enabled, aber `WEBSHIELD.enable=false` -> die Edge-Schicht, die DOS/graylist/
+  CAPTCHA durchsetzt, lief nicht -> verteilter Flood ging ungebremst durch. Durabler Netzwerk-Fix =
+  WEBSHIELD aktivieren (+ WORDPRESS.waf_default=true, ai_bot_protection=true).
+- Angewandte Apache-Haertung (persistent, cPanel-upgrade-safe includes):
+  * pre_main_global.conf: `Timeout 60` + `ProxyTimeout 60` (statt 300) und `<IfModule reqtimeout_module>
+    RequestReadTimeout header=20-40,MinRate=500 body=20,MinRate=500`.
+  * pre_virtualhost_global.conf: `<Files "xmlrpc.php"> Require all denied` -> 403 in ms VOR FPM,
+    entzieht dem WP-Brute-Force die Amplification (bricht nur Jetpack/Remote-Publishing; Site bei
+    Bedarf per Vhost whitelisten).
+  * Nach include-Aenderung IMMER `httpd -t` (Syntax OK) vor `/scripts/restartsrv_httpd`; bei Fehler
+    include-Zeilen per sed zurueckrollen und NICHT neu starten.
+- Netzwerk-Stopgap: iptables connlimit >100/IP auf 80,443, boot-persistent als systemd
+  `ops-connlimit.service` (/usr/local/sbin/ops-connlimit.sh). ACHTUNG: gegen VERTEILTE Floods (viele
+  Azure-IPs, je wenige Conns) sind Per-IP-Limits schwach -> Apache-Layer-Fixes + imunify WEBSHIELD sind
+  die eigentliche Abwehr. imunify kann die iptables-Regel bei Reload flushen (Boot-Reinstall deckt
+  Reboot, nicht Laufzeit-Flush).
+- Ops-Zugang Hosting: One-shot-Workflow in infra-monitoring (Runner gha-infra-monitoring-1),
+  `/home/runner/.ssh/deploy_ed25519` -> root@88.99.195.89. Remote-Ausgabe base64-verpackt zurueckgeben
+  (GHA maskiert sonst mehrstellige Zahlen wie "22" -> ***).
