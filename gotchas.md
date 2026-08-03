@@ -888,3 +888,35 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
   override-sicher gegen WP-.htaccess; `<Location> Require all denied` kann durch AllowOverride/
   .htaccess unterlaufen werden (bzw. lud hier gar nicht). ACME immer freihalten:
   `^/(?!\.well-known/acme-challenge/)`.
+
+
+### CloudLinux/cPanel EA4: MPM prefork->event verlangt mod_cgi->mod_cgid + weitere Fallstricke (03.08.2026)
+- ea-apache24-mod_mpm_event ist THREADED; ea-apache24-mod_cgi verlangt `ea-apache24-mpm = forked` ->
+  reiner `dnf swap ...mpm_prefork ...mpm_event` scheitert: "requires ea-apache24-mpm = forked, but none
+  of the providers can be installed / conflicting requests". Loesung: mod_cgi gegen mod_cgid (threaded)
+  MIT-tauschen. Korrekte, minimale, transaktionale Aktion:
+    dnf -y install ea-apache24-mod_mpm_event ea-apache24-mod_cgid --allowerasing
+  Vorher IMMER Preview `... --allowerasing --assumeno` -> muss GENAU "Install 2 / Remove 2" zeigen
+  (+mpm_event +mod_cgid / -mpm_prefork -mod_cgi) und KEINE kritischen Module (proxy/ssl/security2/
+  hostinglimits/proxy_fcgi/php). Danach `/usr/local/cpanel/scripts/rebuildhttpdconf` + `httpd -t`
+  (Syntax OK) + `/scripts/restartsrv_httpd`; `httpd -V | grep 'Server MPM'` muss "event" zeigen.
+  Voraussetzung: alle Domains auf PHP-FPM/suexec (kein DSO/mod_php, kein mod_lsapi) -> event-kompatibel.
+- Paketnamen nutzen UNTERSTRICHE: ea-apache24-mod_mpm_prefork / _event / _worker und ea-apache24-mod_cgi(d).
+  Grep/dnf mit Bindestrich ("mod-mpm") findet NICHTS -> Fehlschluss "nicht installiert/verfuegbar".
+- `ea_current_to_profile` gibt KEIN JSON auf stdout, sondern SCHREIBT eine Datei
+  /etc/cpanel/ea4/profiles/custom/current_state_at_*.json und druckt nur den PFAD (~73 Zeichen, sah aus
+  wie "leere 73-Byte-Ausgabe"). Das ist das exakte EA4-Rollback-Artefakt (`ea_install_profile --install`).
+- event-Tuning: cPanel generiert nach dem Swap KEINEN `<IfModule mpm_event_module>`-Block, und
+  /var/cpanel/conf/apache/local existierte hier NICHT -> Apache laeuft auf event-Defaults (ServerLimit 16
+  x ThreadsPerChild 25 = MaxRequestWorkers ~400, bereits > prefork 150). Explizit + kollisionsfrei pinnen
+  ueber pre_main_global.conf: `<IfModule mpm_event_module> ServerLimit 20 / ThreadsPerChild 25 /
+  MaxRequestWorkers 500 / MinSpareThreads 75 / MaxSpareThreads 250 / MaxConnectionsPerChild 10000`.
+  Regeln: MaxRequestWorkers = Vielfaches von ThreadsPerChild und <= ServerLimit x ThreadsPerChild.
+- FPM-Defaults global: /var/cpanel/ApachePHPFPM/system_pool_defaults.yaml (ggf. NEU anlegen). Es MERGT mit
+  cPanel-Defaults (nur gesetzte Keys ueberschreiben; pm/max_children bleiben). Funktionierende Keys hier:
+  `pm_max_requests: 500` und `request_terminate_timeout: 120s`. Danach `/usr/local/cpanel/scripts/
+  php_fpm_config --rebuild` + FPM-Services (ea-phpNN-php-fpm) restart.
+- Prod-Aenderungsmuster (Pflicht): Baseline aller vhosts aus `httpd -S` (namevhost, $4) als domain->HTTP
+  (baseline.tsv) einfrieren; nach jeder Aenderung neu testen; REGRESSION = war served (nicht 000/<500) und
+  jetzt 000/>=500 -> Auto-Rollback. Backup (Config+EA4-Profil) + Offsite /mnt/storagebox-nc/ops-backups/
+  vor UND nach. LAST_PRE_BACKUP / LAST_POST_BACKUP zeigen auf die jeweiligen Verzeichnisse.
