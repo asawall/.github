@@ -4,6 +4,20 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 — botmatiq v4.0.9 (6e30f99) + Artikelstamm-Rettung Merseburg:
+  Artikelstamm zeigte 0 Artikel. Befund: ALLE Loesch-Pfade sind Soft-Deletes
+  (IsActive=false), Liste filtert activeOnly -> Daten in DB, nur deaktiviert;
+  UI-Button "Alle loeschen" (POST /articles/clear-all) hatte nur EIN confirm
+  und KEIN Audit (nur LogWarning "Clear-All: ... by {User}"). Rettung per
+  artikel-repair-Block: psql aus .env-ConnectionString, Fall A UPDATE
+  IsActive=true WHERE UpdatedAt>=02.08. 12:00Z, Fall B pg_restore
+  --data-only -t article_master aus C:\Botmatiq-backups (02.08.-Dump
+  bevorzugt), Validierung DB+API. Haertung v4.0.9: clear-all Body-Confirm
+  ALLE-DEAKTIVIEREN (Muster purge-history), UI zweistufig, Audit
+  ARTICLE_DELETE/BULK_DELETE/CLEAR_ALL. Audit-Tabelle heisst audit_log
+  (nicht audit_logs). Masse-Frage geklaert: Juni-Testexport hatte nur
+  85/949 Zeilen mit L/B/H (Reader-Offsets [120,129) korrekt) — frischer
+  AMOR-Komplettexport bringt die seit Juli gepflegten Masse.
 - 2026-08-02 (2) — botmatiq v4.0.7+v4.0.8: AMOR-Ingest & Plaene sichtbar. v4.0.8
   (8b6da85): "Batch optimieren"-Befund (9x Auftrag 5, Behaelter 1-9 von 37, je 22
   Schachteln) war KEIN Composer-Bug: ~800 Schachteln Sollmenge auf 3 Positionen,
