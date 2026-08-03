@@ -806,3 +806,16 @@ dekodieren.
 staging-Branch, nie auf main → Force-Reset von staging auf main-Basis zerstörte
 den Staging-Deploy. Jetzt liegt die Infra auf main; alter Branch-Stand gesichert
 als `staging-backup-20260729`. Regel: staging = main + zu testende Commits.
+
+### pg_restore-als-SQL leert den search_path — unqualifizierte COPY-Ziele laufen ins Leere
+- **Symptom**: `pg_restore --data-only -t <tab> -f out.sql`, COPY-Ziel per Regex auf
+  eine Temp-Tabelle umgebogen, psql -f meldet `Relation existiert nicht` — obwohl
+  CREATE TABLE unmittelbar davor lief. (Merseburg freitagstand-restore2, 03.08.2026)
+- **Cause**: Der pg_dump/pg_restore-SQL-Kopf enthaelt
+  `SELECT pg_catalog.set_config('search_path', '', false);` — in DIESER Session ist
+  public nicht im Pfad. `COPY tmp_x` (ohne Schema) findet public.tmp_x nicht.
+- **Fix**: Ziel IMMER schema-qualifiziert umschreiben (`COPY public.tmp_x`), Temp-
+  Tabelle als `public.tmp_x` anlegen. Und: nach dem Laden HART auf Zeilenzahl gaten
+  (count < N -> Abbruch), bevor irgendein UPDATE/DELETE auf Livedaten laeuft — der
+  v2-Block lief mit 0 geladenen Zeilen weiter und nur Glueck (Sanity traf ohnehin
+  falsche Werte) verhinderte Schaden.
