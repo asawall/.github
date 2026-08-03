@@ -920,3 +920,19 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
   (baseline.tsv) einfrieren; nach jeder Aenderung neu testen; REGRESSION = war served (nicht 000/<500) und
   jetzt 000/>=500 -> Auto-Rollback. Backup (Config+EA4-Profil) + Offsite /mnt/storagebox-nc/ops-backups/
   vor UND nach. LAST_PRE_BACKUP / LAST_POST_BACKUP zeigen auf die jeweiligen Verzeichnisse.
+
+
+### CloudLinux EA4: MPM prefork->event Umstieg + Worker/FPM-Tuning (03.08.2026)
+- Paketnamen mit UNTERSTRICH: ea-apache24-mod_mpm_prefork/_event/_worker, ea-apache24-mod_cgi(d). grep/dnf mit Bindestrich findet nichts.
+- HARTER KONFLIKT: reiner `dnf swap ...mpm_prefork ...mpm_event` scheitert -> ea-apache24-mod_cgi verlangt `ea-apache24-mpm = forked` (event=threaded).
+  LOESUNG: mod_cgi MIT tauschen: `dnf -y install ea-apache24-mod_mpm_event ea-apache24-mod_cgid --allowerasing`
+  (installiert event+cgid, entfernt prefork+mod_cgi). VORHER mit `--assumeno` pruefen: es duerfen NUR diese 4 Pakete betroffen sein.
+  Danach `/usr/local/cpanel/scripts/rebuildhttpdconf` + `restartsrv_httpd`; `httpd -V` -> Server MPM: event.
+- ea_current_to_profile SCHREIBT eine Datei /etc/cpanel/ea4/profiles/custom/current_state_*.json und gibt nur den PFAD auf stdout (nicht das JSON) = exaktes Rollback-Profil.
+  Rollback auf prefork: `dnf -y install ea-apache24-mod_mpm_prefork ea-apache24-mod_cgi --allowerasing` + rebuildhttpdconf + restart.
+- MaxRequestWorkers: cPanel uebernimmt beim event-Rebuild den alten prefork-Wert (hier 150); /var/cpanel/conf/apache/local existierte NICHT.
+  Sauberer Override ohne cPanel-YAML: <IfModule mpm_event_module>-Block in /etc/apache2/conf.d/includes/post_main_global.conf (post_main wird NACH dem Main-Block inkludiert -> gewinnt).
+- FPM: /var/cpanel/ApachePHPFPM/system_pool_defaults.yaml existierte NICHT. Anlegen mit `pm_max_requests: 500` + `request_terminate_timeout: 120s` -> `php_fpm_config --rebuild`.
+  request_terminate_timeout WIRD via system defaults in alle Pools uebernommen (108 bestaetigt). Rollback = Datei loeschen + rebuild.
+- Haertungs-Includes (pre_main_global: Timeout/ProxyTimeout/reqtimeout; pre_virtualhost_global: xmlrpc deny) UEBERLEBEN rebuildhttpdconf.
+  Nach jedem Schritt alle 60 Domains gegen $BK/baseline.tsv geprueft (Regression = war <500, jetzt 000/>=500 -> Auto-Rollback).
