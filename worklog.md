@@ -4,6 +4,16 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (7) — easyconcerts.de WEB deaktiviert (Andreas: "nichts Vernuenftiges", Mail offen).
+  User=timo (WP-Install /home/timo/public_html, war Mit-Ziel des Floods). 403 NUR fuer Apex+www via
+  GLOBALEM Admin-Include /etc/apache2/conf.d/includes/pre_virtualhost_global.conf:
+  `<If "%{HTTP_HOST} =~ /^(www\.)?easyconcerts\.de(:\d+)?$/"> RedirectMatch 403
+  ^/(?!\.well-known/acme-challenge/)`. ACME frei (Cert renewbar), mail.-Alias + Mail (Exim/Dovecot,
+  4 MB, localdomain) UNBERUEHRT, Subdomains eventservice-stuhrmann/easy-entertainment/famstuhrmann +
+  andere Sites unberuehrt. Verifiziert intern+extern 403. Rueckbau: <If>-Block aus dem Include
+  entfernen + rebuildhttpdconf + restartsrv_httpd. GOTCHA: per-Domain-userdata-Includes werden auf
+  dieser Box NICHT angewandt (s. gotchas.md) -> global mit <If Host> loesen.
+
 - 2026-08-03 (6) — HOSTING-AUSFALL server.kingdom-hosting.de (88.99.195.89) behoben+gehaertet.
   Alarm CRIT planning-x.de + kingdom-hosting.de "HTTP no-response". Ursache NICHT Ressourcen
   (Load 1.3, 57G frei, kein OOM) und NICHT der zuerst aus dem error_log vermutete Self-Proxy
