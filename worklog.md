@@ -861,3 +861,20 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
   die Telegram-Erinnerung "Modellarbeit durchziehen" (v2 Bias-Fit+LOO).
   TODO nach 07.08.: Workflow-Datei entfernen (erledigt Claude in der
   Modellarbeits-Session).
+
+## 2026-08-03 (Nachmittag) — v4.0.11: BARCODE.DAT-Härtung + Demo-Block raus aus Livebetrieb
+
+**Kontext:** Produktiv-Export Felde 03.08. lief bis auf BARCODE.DAT durch (2× `[ERR] Stammdaten-Verarbeitung fehlgeschlagen: BARCODE.DAT`, 13:15:45 + 13:23:54, Ganzdatei nach `C:\Botmatiq\data\amor\error`). Ursache verifiziert: Barcode-Feld in BARCODE.DAT ist 30 Byte (HIBC/GTIN/Lieferanten-Nr.), `article_master.PZN2/PZN3` waren `varchar(20)` → DbUpdateException beim Sammel-Save → Datei-Level-Catch schob alles nach error/.
+
+**v4.0.11 (Tag fddd838):**
+- PZN2/PZN3 MaxLength 20→64 + additives Widening-DDL in Program.cs (läuft idempotent bei jedem Start)
+- BARCODE.DAT-Branch zeilentolerant: Überlängen-Guard (`BarcodeColumnWidth=64`, internal const) je Zeile + DbUpdateException-Fallback rettet zeilenweise (Detach + Einzel-Save, defekte Entities benannt geloggt)
+- OrdersPage: Demo-Auftrag-Block nur noch bei `system.simMode===true` (Merseburg mit echter SPS: weg; test.botmatiq.de: bleibt). Historie-Purge an eigenem `canPurge` (Rolle admin/service, auch live)
+- Tests: AmorBarcodeToleranceTests (Spaltenbreiten-Kontrakt per Reflection + Datei-Durchstich mit 25/30-Zeichen-Barcodes) — Suite 1218/1218 grün
+- update411-Block: wartet auf Bundle, prüft varchar(64) via information_schema, legt jüngste `*_BARCODE.DAT` aus error/ zurück in den Transfer, validiert pzn2/pzn3-Füllstand + `length()>20`-Beleg
+
+**Stolperer beim Push:** Dependabot-Commit (rollup-Bump #62) kam zwischen Fetch und Push auf main → erster Push schob nur den Tag (auf den späteren Orphan a5745ae), main rejected. Rebase + `git push -f origin v4.0.11` → main und Tag konsistent auf fddd838. Zwei CI-Läufe für 4.0.11 möglich (Tag 2× gepusht) — letzter Bundle-Writer gewinnt, Inhalt identisch bis auf rollup-Version.
+
+**Mengen-Check Auftrag 10000019:** 620 Schachteln = 20+500+100, Parser validiert Kopfsumme; 23 Behälter bei realen AMOR-Maßen plausibel (~27/Behälter); Mirta TAD 15mg Sollmenge 500 fachlich auffällig → Rückfrage an Felde empfohlen. EXCEEDS_STELLPLAETZE-Banner (23>9) korrekt.
+
+**Offen:** produktiv-check-Block hat zwei Schönheitsfehler für künftige Kopien: `p."ItemsJson" LIKE` braucht `::text`-Cast (jsonb), und error/-Check muss auf `C:\Botmatiq\data\amor\error` zeigen (nicht `$drop\error`).

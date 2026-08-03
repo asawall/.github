@@ -827,3 +827,9 @@ als `staging-backup-20260729`. Regel: staging = main + zu testende Commits.
 - **Fix**: C:\Botmatiq\logs\ verwenden (dort liegt auch db-backup.log). Und:
   Log-Checks nie mit -ErrorAction SilentlyContinue verschlucken, sonst ist die
   Verifikation wertlos.
+
+## AMOR BARCODE.DAT: Feldbreiten ≠ Spaltenbreiten (03.08.2026)
+BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — `article_master.PZN2/PZN3` waren varchar(20). Produktiv-Exporte scheitern damit GARANTIERT (Testdaten führten nur kurze PZNs, darum fiel es erst in Merseburg auf). Seit v4.0.11: varchar(64) + zeilentolerante Verarbeitung. Merkregel: Bei Flat-File-Interfaces jede Spaltenbreite gegen die Feldbreite der Spec prüfen, nie gegen die Testdaten.
+
+## Tag-Push-Race mit Dependabot
+`git push origin main v4.0.11` ist NICHT atomar: läuft parallel ein Dependabot-Merge, kann der Tag durchgehen während main rejected wird — der Tag zeigt dann auf einen Orphan und CI baut daraus. Fix: rebase, `git tag -f`, `git push -f origin <tag>`. Besser: main pushen, DANN erst taggen.
