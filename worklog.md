@@ -4,6 +4,25 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (7) — HOSTING HAERTUNG 1/2/3 auf server.kingdom-hosting.de (88.99.195.89), jeder Schritt mit
+  Backup davor+danach (Config + EA4-Profil; Offsite /mnt/storagebox-nc/ops-backups/{pre,post}-harden-*.tar.gz)
+  und Vollverifikation ALLER 60 vhosts gegen baseline.tsv + Auto-Rollback -> 0 Regressionen in jedem Schritt:
+  (1) imunify360 WEBSHIELD enable=true (war false -> Edge-DOS/graylist/CAPTCHA liefen nie) +
+      WORDPRESS.waf_default=true + ai_bot_protection=true(balanced) via `imunify360-agent config update`.
+  (2) MPM prefork->event: `dnf -y install ea-apache24-mod_mpm_event ea-apache24-mod_cgid --allowerasing`
+      (event=threaded -> mod_cgi[forked] MUSS gegen mod_cgid[threaded] getauscht werden, sonst Konflikt
+      "ea-apache24-mpm = forked"); dann `/scripts/rebuildhttpdconf` + `restartsrv_httpd`. `httpd -V`=event.
+      Rollback: `dnf install ...mpm_prefork ...mod_cgi --allowerasing` + rebuild; Profil-Kopie
+      /root/ops-backups/rollback-prefork-profile.json.
+  (3) event MaxRequestWorkers 500 explizit gepinnt (ServerLimit 20 x ThreadsPerChild 25) im cPanel-Include
+      pre_main_global.conf `<IfModule mpm_event_module>` (cPanel generierte KEINEN event-Block; lief auf
+      Default ~400; /var/cpanel/conf/apache/local existiert nicht). FPM `/var/cpanel/ApachePHPFPM/
+      system_pool_defaults.yaml` NEU: `request_terminate_timeout: 120s` + `pm_max_requests: 500`
+      (pm/max_children unveraendert), `/scripts/php_fpm_config --rebuild`. Extern verifiziert: alle Domains
+      200/301, easyconcerts 403 (Ausgangswert), xmlrpc 403, Server MPM=event. Zusammen mit (6) [Timeout 60,
+      reqtimeout, xmlrpc-deny, connlimit] ist die Worker-Exhaustion strukturell abgestellt. CloudLinux-Swap-
+      Details in gotchas.md.
+
 - 2026-08-03 (7) — easyconcerts.de WEB deaktiviert (Andreas: "nichts Vernuenftiges", Mail offen).
   User=timo (WP-Install /home/timo/public_html, war Mit-Ziel des Floods). 403 NUR fuer Apex+www via
   GLOBALEM Admin-Include /etc/apache2/conf.d/includes/pre_virtualhost_global.conf:
