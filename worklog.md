@@ -4,6 +4,15 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (4) — v4.0.10 LIVE auf IPC (10:52, ERGEBNIS OK): Schutz aktiv
+  (CSV-Merge-Semantik, AllInOne-Import nur -WithImport, Slot 1-2 erzwungen,
+  clear-all Confirm+Audit, /articles+/vision Operator+). Einlern-Merge lief
+  idempotent: 0 zusammengefuehrt, 7 ohne Ziel = echte Nicht-AMOR-Testartikel
+  (inkl. Duplikatpaar 1418925/PZN-01418925 — beide Platzhalter, kein echter
+  Zielartikel; bewusst belassen). Sync push 22 Messungen + 90 Bilder (Poppitz-
+  Wochenendarbeit in Cloud gesichert), Vision aktiv 21 (Poppitz lernt schon
+  wieder ein). Stamm 820/770 mit Massen. IBN-Software-Themen damit rund;
+  vor Ort offen: Not-Halt, Vision-Kalibrierung, V7, Haertung/PW-Rotation.
 - 2026-08-03 (3) — FREITAGSTAND KOMPLETT WIEDERHERGESTELLT (10:47): Die Sa-02:30-
   Cloud-Kopie war nachweislich schon kaputt (restore3 bewies es: 819 geladen,
   Kennzahlen unveraendert) -> Schaden lag VOR Sa 02:30. Finale Loesung aus den
