@@ -4,6 +4,19 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (3) — FREITAGSTAND KOMPLETT WIEDERHERGESTELLT (10:47): Die Sa-02:30-
+  Cloud-Kopie war nachweislich schon kaputt (restore3 bewies es: 819 geladen,
+  Kennzahlen unveraendert) -> Schaden lag VOR Sa 02:30. Finale Loesung aus den
+  ORIGINALQUELLEN statt Backup: (a) Band/Slot fuer 746 Artikel aus den
+  'Uebergabe B.S'-Notes der Bundle-CSV generiert (Verteilung exakt Soll
+  36/58/103/103/91/98/169/88, UPDATE 746); (b) Lagerorte aus ARTFACH.FCH
+  (TestData im Repo) als SQL: 399 gesetzt (mehr als die alten 334 — AmorNr-
+  Bruecke matcht vollstaendiger). Endstand: lagerort 399, slot_1_2 746,
+  ungueltig 0, Alprazolam 011/1.1. Cloud-Route db-backup/download/:file
+  ergaenzt (Tag deploy-superadmin-*). Neue Gotchas: psql-HINWEIS auf stderr
+  sieht in PS rot aus, ist aber harmlos (DROP IF EXISTS); processed/ auf dem
+  Share wird offenbar fremdbereinigt — Originaldateien im Repo-TestData sind
+  die verlaessliche Rekonstruktionsquelle.
 - 2026-08-03 (2) — FREITAGSTAND-VERLUST geklaert + v4.0.10 (037d084): Poppitz-
   Meldung (Lagerort weg, Slot wieder Schacht-Semantik B1/7). Root Cause: der
   v4.0.5-AllInOne-Lauf Sa 16:22 lief MIT CSV-Import; Bundle-CSV = Stand vor
