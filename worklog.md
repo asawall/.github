@@ -4,6 +4,19 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (2) — FREITAGSTAND-VERLUST geklaert + v4.0.10 (037d084): Poppitz-
+  Meldung (Lagerort weg, Slot wieder Schacht-Semantik B1/7). Root Cause: der
+  v4.0.5-AllInOne-Lauf Sa 16:22 lief MIT CSV-Import; Bundle-CSV = Stand vor
+  Freitag; ApplyRequest = Replace-Semantik -> Lagerorte 334->67, Belt/Slot alt,
+  VisionEnabled+PZN2/3+ScanBarcode genullt (daher auch nur 8 Vision aktiv:
+  Rest waren [Eingelernt]-Platzhalter). Meine 4.0.7-4.0.9 liefen -SkipImport.
+  Restore: freitagstand-restore.ps1 aus pg_dump Sa 02:30 (Logistik 1:1,
+  Vision/Bruecken fuellend/OR, Sanity Slot 1-2). Schutz 4.0.10: CSV-Import
+  Merge-Semantik (MergeCsvIntoExisting), ValidateRequest Band 1-4/Slot 1-2,
+  AllInOne-Import nur mit -WithImport, LearnedArticleMergeService+Endpoint+
+  Button (Platzhalter->echte Artikel), /articles+/vision fuer Operator+,
+  canEdit-Hack raus, Ladefehler!=leer. Suite 1215/1215. Leere-Artikelliste
+  heute frueh war NUR abgelaufene Session (F5 reichte).
 - 2026-08-03 — botmatiq v4.0.9 (6e30f99) + Artikelstamm-Rettung Merseburg:
   Artikelstamm zeigte 0 Artikel. Befund: ALLE Loesch-Pfade sind Soft-Deletes
   (IsActive=false), Liste filtert activeOnly -> Daten in DB, nur deaktiviert;
