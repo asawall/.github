@@ -4,6 +4,27 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-03 (6) — HOSTING-AUSFALL server.kingdom-hosting.de (88.99.195.89) behoben+gehaertet.
+  Alarm CRIT planning-x.de + kingdom-hosting.de "HTTP no-response". Ursache NICHT Ressourcen
+  (Load 1.3, 57G frei, kein OOM) und NICHT der zuerst aus dem error_log vermutete Self-Proxy
+  (self-loop-Conns==0). Real: verteilter WP-Brute-Force/Exploit-Flood (Azure 20.x/4.x, 85.204.70.96;
+  POST /xmlrpc.php 793x, /?rest_route=/batch/v1 945x, /wp-login.php 400x, /1.php-/8.php-Webshell-
+  Probes) saettigt PHP-FPM-Pools (easyconcerts/christliches-fernsehen/livinggospel) -> Apache-
+  Prefork-Worker blockieren beim FPM-Proxy bis `Timeout 300` -> alle 150 Worker dicht -> server-
+  weiter Ausfall inkl. chkservds eigenem 127.0.0.1:80-Check. Ungebremst weil CSF NICHT installiert
+  (Firewall=imunify360) UND imunify WEBSHIELD=false -> DOS/graylist/CAPTCHA greifen nicht am Rand.
+  Beweis (additiv/reversibel): extern 80/443 droppen + httpd-Restart -> Loopback sofort 200 in 7ms.
+  FIX+HAERTUNG (infra-monitoring One-shot -> gha-infra-monitoring-1 -> deploy_ed25519 -> root@Hosting):
+  Apache `Timeout 300->60`+`ProxyTimeout 60` (pre_main_global.conf, Anti-Kaskade); `mod_reqtimeout`
+  (Anti-Slowloris); `<Files xmlrpc.php> Require all denied` (pre_virtualhost_global.conf) -> 403 VOR
+  FPM, killt Amplification; iptables connlimit >100/IP auf 80,443 boot-persistent
+  (systemd ops-connlimit.service, /usr/local/sbin/ops-connlimit.sh) + 45.148.10.4 gedroppt; FPM+httpd
+  restart. Verifiziert: alle Domains 200 extern, xmlrpc 403, httpd-Worker 15. One-shot-Workflows geloescht.
+  OFFEN BEI ANDREAS (staerker als connlimit gegen verteilte Floods): imunify360 WEBSHIELD einschalten
+  + WORDPRESS.waf_default=true + ai_bot_protection=true; optional MPM prefork->event +
+  MaxRequestWorkers 150->256; FPM request_terminate_timeout (system_pool_defaults.yaml existiert
+  NICHT -> anlegen oder per-Pool). Details/Reproduktion in gotchas.md.
+
 - 2026-08-03 (5) — LAGERORTE FINAL (13:22, Beweis statt Annahme): Freitag-Kopie
   01.08.T00-30 (Nacht Fr->Sa, VOR Sa-Schaden) geladen und diagnostiziert:
   Fr-Endstand hatte 813 Lagerorte (nicht nur die 399 aus Juni-ARTFACH — am Fr
