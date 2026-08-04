@@ -941,3 +941,9 @@ Empfehlung: dediziertes read-only-GHCR-PAT rotieren statt breitem Zugriff.
 **Offen:** produktiv-check-Block hat zwei Schönheitsfehler für künftige Kopien: `p."ItemsJson" LIKE` braucht `::text`-Cast (jsonb), und error/-Check muss auf `C:\Botmatiq\data\amor\error` zeigen (nicht `$drop\error`).
 
 **Rollout-Ergebnis update411 (15:44–15:52):** v4.0.11 live, varchar(64) bestätigt. Re-Ingest der error/-BARCODE.DAT: 1.247 Zeilen gelesen, 700 Zusatz-Barcodes übernommen (PZN2 396→919, PZN3 137→314 — 523+177=700, exakt konsistent), error/ leer. Ursachen-Beleg: genau 1 Barcode >20 Zeichen im Bestand — diese eine Zeile riss vor dem Fix jedes Mal die ganze Datei. Kein Überlängen-Guard und kein Rescue-Fallback nötig (64 deckt alle 30-Byte-Barcodes).
+
+## 2026-08-04 — Behälterprofil Merseburg: echte Bito-MB-Maße
+
+Poppitz lieferte die Innenmaße der Mehrwegbehälter (Bito MB, konisch: unten 495×325, oben 540×365, befüllbare Höhe 245). Per API-Block (`behaelter-bito-block.ps1`, PUT container-profiles) ins Default-Versandprofil gesetzt: Rechenmaß Mittelwert 517,5×345×245 (Quader-Modell, Abw. zum exakten Konus-/Obeliskvolumen 0,08%), Füllgrad von 30% auf **22,633%** kalibriert, damit das bewährte BFL-Nutzvolumen exakt erhalten bleibt (Volume max 9.900,1 ccm, effektiv nutzbar 5.500,1 nach Fardelage 2×2.200). Verifiziert im Log 04.08. 16:37. Kein Verhaltenssprung, bestehende Behälterpläne gültig, keine Neuplanung. Repo-Default (BuildBflDefault) bewusst unverändert — Mandantendaten leben in der DB (Off-Site-Backup).
+
+**Muster für alle künftigen Installationen (Nancy!):** echte Behältergeometrie erfassen → Mittelmaß bei konischen Kisten → Füllgrad gegen das operativ bewährte Nutzvolumen kalibrieren, nicht raten. Füllgrad-Erhöhung später als bewusste Optimierung übers UI (Behälter-Seite), kein Update nötig.
