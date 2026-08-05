@@ -993,3 +993,37 @@ Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html he
   zwangsweise flushen, Draft erst NACH Erfolg leeren, Fehler am Feld anzeigen statt oben auf der Seite.
 - **Diagnose-Lehre**: Erst in der DB nachsehen, ob die Daten ueberhaupt ankommen, bevor man
   Rendering/PDF debuggt. Der API- und PDF-Pfad war hier vollstaendig intakt.
+
+### PDF-Zeitstempel 2h zu frueh — `toLocaleString('de-DE')` ist KEINE Zeitzone
+- **Symptom**: Ein um 12:44 Uhr in Sigmaringen erzeugtes Pruefprotokoll trug im Kopf "10:44".
+  Betraf jeden Zeitstempel in JEDEM PDF (Bautagebuch, Maengel, Pruefungen, Begehungen) und
+  Begehungs-Mailbetreffe — also ausgerechnet die Dokumente, deren Zweck der Nachweis ist,
+  WANN etwas war. Faellt nie auf, weil das Format deutsch aussieht.
+- **Cause**: Die Container laufen auf UTC. Das Locale-Argument steuert nur die FORMATIERUNG
+  (Reihenfolge, Trennzeichen), nicht die Zone. Ohne `timeZone` rendert Node in der Systemzone.
+- **Fix**: `DISPLAY_TIME_ZONE = 'Europe/Berlin'` + `formatDateDe/formatTimeDe/formatDateTimeDe`
+  in `apps/api/src/common/utils/date.ts`. **Regel: serverseitig NIE direkt `toLocale*` aufrufen**,
+  immer diese Formatierer. Betrifft jedes neue Template und jede neue Mail.
+  `distribution-log.service` machte es laengst richtig — die Regel war nur nie zentral verankert,
+  deshalb hat sie kein zweites Modul uebernommen. Gleiche Klasse wie die Voice-Regel, die nur in
+  einer Pipeline lebte: eine Regel, die an EINER Stelle korrekt ist, ist nicht durchgesetzt.
+
+### `@RequireFeature(...)` ohne `@UseGuards(PlanFeatureGuard)` ist wirkungslos
+- **Symptom**: Endpunkt sieht gated aus, laesst aber jeden Tarif durch. Kein Fehler, kein Log.
+- **Cause**: Der Decorator setzt nur Metadaten. Ohne den Guard am selben Handler (oder Controller)
+  liest sie niemand. In easyArchitekt betraf das `complete`/`revise` der Pruefungen.
+- **Fix**: Beim Review neuer Endpunkte immer beides pruefen. Gilt sinngemaess fuer jeden
+  Metadaten-Decorator ohne Guard.
+
+### Zwei Claude-Instanzen im selben Arbeitsverzeichnis (05.08.2026)
+- **Symptom**: Zwischen eigenem Commit und dem naechsten `git log` tauchen 3 fremde Commits als
+  Vorfahren auf — im **reflog als lokale `commit:`-Eintraege**, ohne `FETCH_HEAD`, mit derselben
+  Identitaet `Claude (for Andreas)`. Sieht zuerst nach Repo-Korruption oder Prompt-Injection aus.
+- **Cause**: Andreas hatte parallel eine zweite Session (Chat/Cowork/Code) auf demselben Container
+  und demselben Klon unter `/home/claude/work/ea`.
+- **Risiko**: `git add -A` committet fremde Work-in-Progress mit; Typecheck laeuft gegen einen Baum,
+  den gerade jemand anders editiert; zwei Instanzen pushen konkurrierend auf `staging`.
+- **Fix**: Vor `git add -A` immer `git status --short` lesen UND `git show --stat` des eigenen
+  Commits gegenpruefen. Bei fremden Commits im reflog: nicht blind pushen, erst Inhalt lesen
+  (`git show`), dann `git fetch` + Stand abgleichen. Und Andreas sagen, dass parallel gearbeitet
+  wurde — nicht stillschweigend fremde Arbeit als eigene ausgeben.

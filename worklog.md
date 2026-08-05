@@ -22,10 +22,27 @@
   (4) Neuer Status REVIEW: "vor Ort beenden" sperrt nicht mehr, PDF traegt bis zur Finalisierung
       ENTWURF (auch im Dateinamen), "finalisieren" setzt lockedAt. Fluss live durchgetestet.
   (5) Planexport-PDF: "Stand: TT.MM.JJJJ, HH:MM Uhr" + Exporteur + Fussnote, Dateiname _Stand-JJJJ-MM-TT.
-  (6) `docs/ADR-firmen-zugang.md` geschrieben (Alex' Anforderung Nachunternehmer-Zugriff) — kein Code,
-      Entscheidung offen. Offene Fragen darin: Seats fuer externe Firmen-User, Sichtbarkeit von
-      Maengeln ohne verantwortliche Firma.
-  Merkposten: Bautagesbericht-Ersteller = Lizenzinhaber, muss auf dem Bericht erscheinen (nicht angefasst).
+  (6) `docs/ADR-firmen-zugang.md` geschrieben (Alex' Anforderung Nachunternehmer-Zugriff) — kein Code.
+      Beide offenen Fragen von Andreas an Claude delegiert und entschieden: externe Firmen-User zaehlen
+      NICHT gegen Seats (Feature stattdessen Pro+-gated, Rolle technisch beschnitten, weicher Deckel je
+      Tarif), Maengel OHNE verantwortliche Firma bleiben fuer Nachunternehmer unsichtbar — Gewerke sind
+      N:M, ein Gewerk-Fallback wuerde Maengel zwischen konkurrierenden Firmen desselben Gewerks lecken;
+      der Arbeitsablauf wird stattdessen bueroseitig geloest (Filter "ohne verantwortliche Firma" +
+      Vorbelegung, wenn dem Gewerk im Projekt genau EINE Firma zugeordnet ist).
+      Freigabe des Gesamtvorgehens durch Alex steht weiter aus.
+  (7) ZEITZONE (aelter als diese Session, beim Verifizieren gefunden): Container laufen UTC,
+      `toLocaleString('de-DE')` aendert nur das FORMAT, nicht die Zone => JEDER Zeitstempel in JEDEM
+      PDF war 2h zu frueh (Bautagebuch, Maengel, Pruefungen, Begehungen) — ausgerechnet in den
+      Dokumenten, deren Zweck der Nachweis ist, wann etwas war. Zentral behoben:
+      `DISPLAY_TIME_ZONE` + formatDateDe/formatTimeDe/formatDateTimeDe in `common/utils/date.ts`;
+      Handlebars-Helfer, Revisionskopf, Planexport, Begehungs-Mailbetreffe laufen darueber.
+      Verifiziert 12:07 statt 10:07. `distribution-log.service` machte es laengst richtig — die Regel
+      war nur nie zentral verankert.
+  Merkposten: Bautagesbericht-Ersteller = Lizenzinhaber, muss auf dem Bericht erscheinen (nicht angefasst,
+  `docs/BACKLOG-phase-e.md`). Konflikt beachten: bei Tranche 5 des Firmen-Zugangs legen Nachunternehmer
+  eigene Bautagebuecher an — dann ist der Ersteller gerade NICHT der Lizenznehmer. Zusammen entscheiden.
+  ACHTUNG Parallel-Sessions: an diesem Repo arbeiteten am 05.08. zwei Claude-Instanzen gleichzeitig im
+  SELBEN Arbeitsverzeichnis mit derselben Commit-Identitaet (siehe gotchas.md).
 
 - 2026-08-03 (7) — HOSTING-HAERTUNG Teil 2 (WebShield + MPM event + Worker/FPM), je mit Backup davor/danach
   + Offsite + Full-Verify aller 60 Domains + Auto-Rollback. Ergebnis: 0 Regressionen, alle Domains 200/301/403 wie Baseline.
