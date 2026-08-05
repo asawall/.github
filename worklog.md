@@ -4,6 +4,29 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-05 — easyArchitekt Pruefungen/Plaene (staging, 4 Commits, NICHT in prod).
+  (1) SICHERHEIT: `x-org-id` war ungeprueft — OrgId-Decorator nahm den Header mit Vorrang vor der
+      Token-Org, kein Guard prueft die Mitgliedschaft, alle Services filtern nur nach dieser orgId
+      => jeder angemeldete User konnte fremde Mandanten lesen/schreiben. Auf staging gegen zwei
+      Fremd-Orgs verifiziert (HTTP 200). Fix: globaler `OrgAccessGuard` (nach JwtAuthGuard, vor
+      RolesGuard), OrgId akzeptiert den Header nur mit `req.orgAccessChecked` (fail closed),
+      PlanFeatureGuard auf dieselbe Quelle. Nach Deploy verifiziert: 403 fremd, 200 eigen,
+      Superadmin wechselt weiter. Smoke-Test `07-org-isolation.spec.ts`.
+      **OFFEN: Prod-Deploy braucht Andreas' Freigabe — Luecke ist dort noch offen.**
+  (2) Pruefungen Teilnehmer: InspectionParticipant + companyId/name/createdAt + Relationen,
+      CRUD-Endpunkte, `resolveParticipant()` prueft jede Fremd-ID org-scoped, Teilnehmer-Karte im
+      Frontend, Firma-Spalte im PDF. 2 handgeschriebene Migrationen inkl. Namens-Backfill.
+  (3) Pruefungen Kommentare: gingen verloren, weil der Draft nur im React-State lag und erst bei
+      "Hinzufuegen" gesendet wurde. Jetzt localStorage-Puffer, Speichern bei Blur, Flush vor
+      PDF/Abschluss/Versand, Draft erst NACH Erfolg geleert.
+  (4) Neuer Status REVIEW: "vor Ort beenden" sperrt nicht mehr, PDF traegt bis zur Finalisierung
+      ENTWURF (auch im Dateinamen), "finalisieren" setzt lockedAt. Fluss live durchgetestet.
+  (5) Planexport-PDF: "Stand: TT.MM.JJJJ, HH:MM Uhr" + Exporteur + Fussnote, Dateiname _Stand-JJJJ-MM-TT.
+  (6) `docs/ADR-firmen-zugang.md` geschrieben (Alex' Anforderung Nachunternehmer-Zugriff) — kein Code,
+      Entscheidung offen. Offene Fragen darin: Seats fuer externe Firmen-User, Sichtbarkeit von
+      Maengeln ohne verantwortliche Firma.
+  Merkposten: Bautagesbericht-Ersteller = Lizenzinhaber, muss auf dem Bericht erscheinen (nicht angefasst).
+
 - 2026-08-03 (7) — HOSTING-HAERTUNG Teil 2 (WebShield + MPM event + Worker/FPM), je mit Backup davor/danach
   + Offsite + Full-Verify aller 60 Domains + Auto-Rollback. Ergebnis: 0 Regressionen, alle Domains 200/301/403 wie Baseline.
   Backups: /root/ops-backups/pre-harden-20260803-195603 + post-harden-20260803-201918 (+ /mnt/storagebox-nc/ops-backups/*.tar.gz);

@@ -962,3 +962,34 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
 
 ## SPA hinter Botmatiq.Core: index.html braucht explizites no-cache
 Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html heuristisch und zeigen nach Updates die alte App (Vite-Hashing schuetzt nicht, wenn die index selbst aus dem Cache kommt). Standard seit v4.0.13: OnPrepareResponse -> index.html no-cache, /assets/* public,max-age=31536000,immutable. Gilt fuer jede kuenftige Installation.
+
+
+### Header-basierter Mandanten-Switch ohne Mitgliedschaftspruefung (easyArchitekt, 05.08.2026)
+- **Symptom**: keins. Die Antwort auf ein fremdes `x-org-id` war HTTP 200 mit LEERER Liste — das
+  sieht aus wie korrekte Isolation. Sichtbar wird der Fehler nur, wenn die fremde Org Daten hat.
+- **Cause**: `OrgId`-Decorator nahm `req.headers['x-org-id']` mit Vorrang vor der Org im Token
+  (gedacht fuer den Org-Switcher), geprueft hat es niemand. Jeder Service filtert ausschliesslich
+  nach genau dieser orgId — die Ressourcen-Pruefungen (`assertX(orgId, id)`) sind damit wirkungslos,
+  weil der Angreifer die orgId selbst bestimmt. `JwtStrategy.validate` prueft nur, ob der User aktiv
+  ist, nicht wo er Mitglied ist.
+- **Fix**: globaler `OrgAccessGuard` zwischen JwtAuthGuard und RolesGuard prueft die aktive
+  `OrganizationMembership`, wenn der Header von der Token-Org abweicht (Superadmin ausgenommen),
+  setzt `req.resolvedOrgId` + `req.orgAccessChecked`. Der Decorator akzeptiert den Header NUR mit
+  dieser Markierung, sonst Token-Org (fail closed). PlanFeatureGuard las den Header ebenfalls direkt.
+- **Lehre 1**: Ein Wert, der den Sicherheits-Scope bestimmt, darf nie aus einem Header/Body kommen,
+  ohne dass genau eine Stelle ihn gegen die Identitaet prueft. Gleiche Klasse wie "Fremd-IDs aus dem
+  Request-Body landen ungeprueft in Relationen" — dort pro Schreibpfad, hier fuer den ganzen Mandanten.
+- **Lehre 2**: Isolationstests muessen den STATUSCODE pruefen, nicht den Inhalt. Eine leere Liste ist
+  kein Beweis fuer Isolation, sondern haeufig nur ein Beweis dafuer, dass die fremde Org leer ist.
+
+### Kommentar-/Eingabefelder, die erst auf Knopfdruck senden, verlieren auf dem Handy Daten
+- **Symptom**: Bauleiter tippt Kommentare zu Pruefpunkten, im PDF steht nichts, auf dem zweiten
+  Geraet ist nichts zu sehen. Kein Fehler, keine Meldung. In der DB: 0 Notizen auf 7 Punkten.
+- **Cause**: Der Text lebte nur im React-State und wurde erst beim Tippen auf "Hinzufuegen"
+  gesendet. Auf dem Handy scrollt man weiter, wechselt die Ansicht oder erzeugt direkt das PDF —
+  weg. Verschaerfend: der Draft wurde VOR dem API-Call geleert, ein Fehler kostete den Text ebenfalls.
+- **Fix-Muster** (gilt fuer jedes Freitextfeld in der App): Draft in localStorage puffern, bei
+  `onBlur` speichern, vor jeder abschliessenden Aktion (PDF, Abschluss, Versand) alle offenen Drafts
+  zwangsweise flushen, Draft erst NACH Erfolg leeren, Fehler am Feld anzeigen statt oben auf der Seite.
+- **Diagnose-Lehre**: Erst in der DB nachsehen, ob die Daten ueberhaupt ankommen, bevor man
+  Rendering/PDF debuggt. Der API- und PDF-Pfad war hier vollstaendig intakt.
