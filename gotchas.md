@@ -959,3 +959,6 @@ BARCODE.DAT-Barcode-Feld ist 30 Byte (HIBC/GTIN/Lieferanten-Artikelnummern) — 
 
 ## pkill -f killt die eigene Wrapper-Shell
 `pkill -f <pattern>` matcht auch das eigene bash -c Kommando, wenn der Pattern im Befehlstext vorkommt (Exit 144). Per PID killen oder `ps aux | grep "[p]attern"` verwenden.
+
+## SPA hinter Botmatiq.Core: index.html braucht explizites no-cache
+Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html heuristisch und zeigen nach Updates die alte App (Vite-Hashing schuetzt nicht, wenn die index selbst aus dem Cache kommt). Standard seit v4.0.13: OnPrepareResponse -> index.html no-cache, /assets/* public,max-age=31536000,immutable. Gilt fuer jede kuenftige Installation.

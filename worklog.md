@@ -958,3 +958,5 @@ Der Git-Proxy der Claude-Cloud-Sandbox verlor mitten in der Session BEIDE Repos 
 v4.0.12 inhaltlich: Artikelstamm lädt seitenweise nach (IntersectionObserver, 600px Vorlauf), Fußzeile "N von M Artikeln geladen" + "Weitere laden"-Fallback (DE/EN/FR), Scroll-Position bleibt nach Speichern/Löschen erhalten, Dedupe beim Anhängen. Befund: fixe 500er-Seite ließ die Liste bei "I" enden — die API konnte Paging längst (page/pageSize/total).
 
 Sandbox-Checkouts nach Heilung syncen: botmatiq lokal 433dc30 ist inhaltsgleich zu remote 7782521, aber anderer SHA (git am) → `git fetch && git reset --hard origin/main`; dot-github: lokalen One-Shot-Commit verwerfen (obsolet).
+
+**Nachtrag v4.0.13 (05.08., Mac-Relay c3435e5):** Ursache des "Update unsichtbar"-Verhaltens auf dem IPC bestaetigt: index.html kam OHNE Cache-Control (nur ETag/Last-Modified) -> Edge cachte heuristisch, Logout/Reload half nicht, erst Strg+F5. Fix: index.html + SPA-Fallback no-cache (ETag-Revalidierung), /assets/* immutable 1 Jahr. Ab dem naechsten Update sind neue Frontends sofort sichtbar; das Einspielen von 4.0.13 selbst braucht noch einmal Strg+F5 (letzter Alt-Cache).
