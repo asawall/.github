@@ -1027,3 +1027,23 @@ Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html he
   Commits gegenpruefen. Bei fremden Commits im reflog: nicht blind pushen, erst Inhalt lesen
   (`git show`), dann `git fetch` + Stand abgleichen. Und Andreas sagen, dass parallel gearbeitet
   wurde — nicht stillschweigend fremde Arbeit als eigene ausgeben.
+
+
+### Nextcloud-Landschaft + KingdomAI Health-Monitor (Scan-Hub Watchdog) — 06.08.2026
+- Es gibt GENAU ZWEI Nextclouds (Andreas bestaetigt): (1) nextcloud.kingdom-hosting.de = cPanel auf Hosting
+  88.99.195.89, v30, User andreas. (2) cloud.kingdom-hosting.de = KAI, nginx sites-enabled 'cloud-kingdom-hosting'
+  -> 127.0.0.1:8083 (Container nc-archive-app), Daten in /srv/nextcloud-archive, v33 = die Archivcloud (Scanner-Ziel).
+- ENTFERNT als Altlast (06.08.): Container 'kingdom-nextcloud' (:8082, nextcloud:28, war nie installiert/installed:false)
+  + Volume 'kingdom-nextcloud-data'; nginx server-Bloecke fuer ki-cloud.kingdom-hosting.de aus
+  /etc/nginx/sites-available/kingdomai (dieser File ist NICHT enabled; aktive ki.-Config liegt in 'ki-kingdom-hosting-de').
+  ki-cloud + ki.kingdom-hosting.de/nextcloud existieren NICHT mehr. (Letztverbliebene ki-cloud Certbot-Cert + Hetzner-DNS-
+  Record sind harmlos, koennen bei Bedarf noch weg.)
+- Der "Scan-Hub Watchdog"-Alarm ("Nextcloud nicht erreichbar") kommt aus dem n8n-Workflow **"SaPe — KingdomAI Docker
+  Health Monitor"** (Container va-n8n, DB /var/lib/docker/volumes/vertriebsarchitekt_n8n_data/_data/database.sqlite,
+  alle 10 Min, Node "Services Liste" (Code) -> Health Check -> Telegram Alert). Er zeigte auf tote/falsche URLs.
+- KORRIGIERTE Monitor-URLs (Services Liste): Backend/Postgres/Redis -> https://ki.kingdom-hosting.de/api/health,
+  Frontend -> https://ki.kingdom-hosting.de/, Nextcloud -> https://cloud.kingdom-hosting.de/status.php. Alle -> 200.
+- WICHTIG: KingdomAI Backend (8001) + Frontend (3001) binden nur auf 127.0.0.1 (hinter nginx). Ein Monitor aus einem
+  Container/anderem Host MUSS die oeffentliche Domain (ki.kingdom-hosting.de) pruefen, NICHT http://46.224.164.200:8001|3001
+  (== 000). n8n-Workflow-URL aendern: n8n stoppen -> sqlite UPDATE workflow_entity.nodes REPLACE(url) -> PRAGMA
+  wal_checkpoint(TRUNCATE) -> n8n starten (laedt aktive Workflows frisch aus der DB). Immer DB-Backup davor.
