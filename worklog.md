@@ -4,6 +4,31 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-07 — easyArchitekt: Alex/Andreas-Meldungen aus dem Test abgearbeitet, alles auf `staging`
+  (64d0365, e0a0a78, e506a6d, 3e6ac65). WICHTIG: die Meldungen zu Projektanzeige/Filter/Dokumente
+  stammten aus `b409211` (Projekt-Kontext, 03.08.), nicht aus der Pruefungs-Arbeit.
+  (1) "Punkt hinzufuegen nicht anklickbar" = Button war `disabled` solange das Feld daneben leer war.
+      Auf dem Handy sieht das aus wie ein kaputter Button. Jetzt immer klickbar, leeres Feld bekommt
+      den Fokus. IM BROWSER REPRODUZIERT (puppeteer, `{"t":"Add point","dis":true}`) — nicht geraten.
+  (2) Aktives Projekt fehlte auf dem Handy komplett: der blaue Block lag nur in der Desktop-Sidebar
+      (`hidden md:flex`). Also genau auf der Baustelle unsichtbar. Jetzt im mobilen Header.
+  (3) Maengel + Aufgaben lasen den Projektfilter NUR aus der URL -> ueber Mobil-Nav/Lesezeichen/Zurueck
+      ungefiltert. Jetzt Rueckfall auf den aktiven Projekt-Kontext.
+  (4) Filter-Chip zeigte "Projekt: …", weil nur die ID lokal lag und der Name nachgeladen wurde —
+      daher erster Aufruf falsch, zweiter richtig (Query-Cache). Stammdaten werden jetzt mitgepuffert.
+      Ausserdem loeschte sich der Projekt-Kontext bei JEDEM Fehler von /projects/:id selbst; jetzt nur 404.
+  (5) Dokumente: Projektfilter blendete organisationsweite Dokumente (projectId=null) aus -> frisch
+      angelegtes Projekt zeigte "keine Treffer". Backend UND Clientfilter mussten angepasst werden;
+      der erste Fix im Backend allein hat NICHTS gebracht, weil die Seite zusaetzlich im Browser filtert.
+  (6) Beim Rendern gegengeprueft: `{{#if this.value}}` behandelt false und null gleich — ein nie
+      geprueftes Ja/Nein-Kriterium stand im Protokoll als "✗ Nein", also als Feststellung, die
+      niemand getroffen hat. Helfer `boolResult` -> ja/nein/offen.
+  (7) Google Ads v21 ausgelaufen (siehe gotchas). Standard auf v24, read-only verifiziert.
+  Eigener Fehler aus der Vorsession korrigiert: das Tarif-Gate an start/complete/revise hatte ich
+  in die falsche Richtung "konsistent" gemacht und damit Starter-Orgs ausgesperrt (c99f6ec).
+  Regel jetzt: nur die Neuanlage ist gegated, der Lebenszyklus einer bestehenden Pruefung nie.
+  OFFEN + braucht Andreas: Prod-Deploy des x-org-id-Fixes (main steht auf 9b00806) und des Ads-v24-Bumps.
+
 - 2026-08-05 — easyArchitekt Pruefungen/Plaene (staging, 4 Commits, NICHT in prod).
   (1) SICHERHEIT: `x-org-id` war ungeprueft — OrgId-Decorator nahm den Header mit Vorrang vor der
       Token-Org, kein Guard prueft die Mitgliedschaft, alle Services filtern nur nach dieser orgId

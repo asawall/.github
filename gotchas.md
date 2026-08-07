@@ -1047,3 +1047,28 @@ Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html he
   Container/anderem Host MUSS die oeffentliche Domain (ki.kingdom-hosting.de) pruefen, NICHT http://46.224.164.200:8001|3001
   (== 000). n8n-Workflow-URL aendern: n8n stoppen -> sqlite UPDATE workflow_entity.nodes REPLACE(url) -> PRAGMA
   wal_checkpoint(TRUNCATE) -> n8n starten (laedt aktive Workflows frisch aus der DB). Immer DB-Backup davor.
+### Google Ads API v21 ausgelaufen (05.08.2026) — Sunset kommt schubweise
+- **Symptom**: Monitor-Job faellt an EINEM Tag mit `UNSUPPORTED_VERSION` aus, am
+  naechsten Tag ist er wieder gruen. Sieht nach Flake aus, ist es nicht.
+- **Cause**: Google schaltet Sunsets nicht hart um, sondern rollt sie aus. Solange
+  eine ausgelaufene Version noch teilweise antwortet, schlagen genau die
+  Aufrufe fehl, die niemand anschaut — bei uns die Offline-Conversion-Uploads
+  aus dem Stripe-Webhook. Die Gebotsoptimierung laeuft dann auf Luecken.
+- **Fix**: Standard auf `v24` (dokumentierter Umstiegspfad von v21), Override
+  ueber `GOOGLE_ADS_API_VERSION`. Betroffen sind IMMER zwei Stellen:
+  `apps/api/src/modules/google-ads/google-ads.service.ts` und
+  `scripts/check-ads-conversions.mjs`.
+- **Vorgehen zum Pruefen ohne Risiko**: OAuth-Token aus dem Refresh-Token ziehen,
+  dann `googleAds:search` mit `SELECT customer.id FROM customer LIMIT 1` je
+  Version, und `uploadClickConversions` mit **`validateOnly: true`** — damit
+  wird die Anfrageform geprueft, ohne dass eine Conversion geschrieben wird.
+- **Merken**: Ads-Versionen leben rund ein Jahr, seit Januar 2026 gibt es
+  4 Major-Releases pro Jahr. Das gehoert einmal im Quartal geprueft, nicht
+  erst wenn der Monitor rot wird.
+
+### Prod-Deploy haengt an JEDEM Push auf main
+- `deploy.yml` triggert auf `push: branches: [main]` **ohne Pfadfilter**. Auch ein
+  reiner Doku- oder Workflow-Commit auf main loest einen Produktions-Deploy aus.
+- **Folge**: `diag-once.yml` laesst sich NICHT auf main aktualisieren, um eine
+  Diagnose zu fahren — das waere ein ungefragter Prod-Deploy. Diagnose stattdessen
+  direkt gegen die API/Staging fahren oder Andreas um Freigabe bitten.
