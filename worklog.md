@@ -4,6 +4,22 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-07 (2) — PROD-DEPLOY nach ausdruecklicher Freigabe von Andreas. main 9b00806 -> c2e9dc9.
+  Bewusst ENG geschnitten statt staging komplett zu promoten: nur (a) x-org-id-Security-Fix
+  (cherry-pick 8607917), (b) Google-Ads v24 (cherry-pick 3e6ac65), (c) E2E-Isolationstest —
+  von c65e783 NUR die Testdatei, weil der Pruefungs-Teil desselben Commits auf der
+  Teilnehmer-Erweiterung aufsetzt, die auf main nicht existiert. Keine Migrationen, 7 Dateien.
+  Vor dem Push geprueft: Guard-Reihenfolge (Jwt -> OrgAccess -> Roles) und dass
+  `myOrganizations` genauso auf `isActive: true` filtert wie der Guard — sonst haette der
+  Org-Switcher Organisationen angeboten, die der Guard danach mit 403 ablehnt.
+  Verifiziert in PROD: eigene Org 200, fremde Org 403, ohne Token 401. E2E Smoke gruen,
+  Ads-Monitor manuell ausgeloest und gruen (v24). Die Luecke ist geschlossen.
+  i18n-sync ausgefuehrt (105-113 Keys je Sprache). Nachkorrigiert: Maschinenuebersetzung gab
+  "Protokoll" mal als "log" wieder — im Produkt ist "log" aber das Bautagebuch. 9 Keys auf
+  "protocol" vereinheitlicht.
+  DABEI GEFUNDEN: Staging-Deploy scheiterte, weil er zeitgleich mit dem Prod-Deploy lief und
+  beide sich ~/.docker/config.json teilen (siehe gotchas). Behoben ueber eigenen DOCKER_CONFIG.
+
 - 2026-08-07 — easyArchitekt: Alex/Andreas-Meldungen aus dem Test abgearbeitet, alles auf `staging`
   (64d0365, e0a0a78, e506a6d, 3e6ac65). WICHTIG: die Meldungen zu Projektanzeige/Filter/Dokumente
   stammten aus `b409211` (Projekt-Kontext, 03.08.), nicht aus der Pruefungs-Arbeit.

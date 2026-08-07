@@ -1072,3 +1072,18 @@ Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html he
 - **Folge**: `diag-once.yml` laesst sich NICHT auf main aktualisieren, um eine
   Diagnose zu fahren — das waere ein ungefragter Prod-Deploy. Diagnose stattdessen
   direkt gegen die API/Staging fahren oder Andreas um Freigabe bitten.
+
+### Prod- und Staging-Deploy kollidieren ueber ~/.docker/config.json (07.08.2026)
+- **Symptom**: Staging-Deploy bricht beim Pull ab: `error from registry: denied` —
+  obwohl derselbe Lauf das Image Minuten zuvor gepusht hat und `docker login`
+  mit `Login Succeeded` quittierte. Sieht aus wie ein GHCR-Rechteproblem, ist keins.
+- **Cause**: Beide Deploys laufen auf KAI als demselben Benutzer und teilen sich
+  denselben Docker-Credential-Store. Die concurrency-Gruppen sind getrennt
+  (`deploy-production` / `deploy-staging`), also laufen sie gleichzeitig, sobald
+  jemand nach main und staging kurz hintereinander pusht. Der eine Login
+  ueberschreibt bzw. entfernt den anderen.
+- **Fix**: `export DOCKER_CONFIG="${APP_PATH}/.docker"` in `deploy-staging.sh`.
+  Einseitig ausreichend. Eine gemeinsame concurrency-Gruppe waere die Alternative,
+  reiht Staging dann aber hinter jeden Prod-Deploy — unnoetig langsam.
+- **Merken**: Alles was auf KAI als derselbe Benutzer laeuft, teilt sich HOME.
+  Bei neuen Pipelines auf dem Server immer fragen, welcher Zustand geteilt wird.
