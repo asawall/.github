@@ -1087,3 +1087,16 @@ Kestrel StaticFiles setzt KEIN Cache-Control -> Browser cachen die index.html he
   reiht Staging dann aber hinter jeden Prod-Deploy — unnoetig langsam.
 - **Merken**: Alles was auf KAI als derselbe Benutzer laeuft, teilt sich HOME.
   Bei neuen Pipelines auf dem Server immer fragen, welcher Zustand geteilt wird.
+
+## GHA Actions-Storage: Accrued GB-Stunden, nicht Momentaufnahme (2026-08-09)
+- **Symptom**: 100%-Storage-Mail am 9. des Monats, aber aktuell nur 0,34 GB Artefakte sichtbar.
+- **Cause**: Abgerechnet wird ACCRUED (GB-Stunden ueber den Zyklus), nicht Current. Ein
+  391-MB-Artefakt mit 5d Retention x 11 Builds = ~0,7 GB-Monate, obwohl laengst expired.
+  Loeschen/Cleanup-Workflows stoppen nur kuenftige Accrual — die Rechnung fuer Vergangenes
+  bleibt. Artefakte + GitHub Packages (GHCR-Images!) teilen sich denselben 2-GB-Pool.
+- **Fix**: retention-days im upload-artifact-Step klein halten (1d fuer Build-Transport,
+  Releases fuer Distribution — Release-Assets zaehlen NICHT). Max-Retention aller Repos per
+  `PUT /repos/{o}/{r}/actions/permissions/artifact-and-log-retention` auf 7d gedeckelt
+  (GitHub-Default ist 90d). Kostenrahmen: Overage $0.25/GB-Monat — Alarm klingt dramatisch,
+  Rechnung ist Cents. $0-Budget wuerde Uploads blocken (CI rot); Stand 08/2026 keins gesetzt,
+  verifiziert per Upload-Probe.

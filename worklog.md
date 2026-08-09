@@ -4,6 +4,13 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-09 (2) — GHA-Storage-Alarm (100% von 2 GB am Tag 9) analysiert + entschaerft. Ursache:
+  botmatiq windows-publish lud 391-MB-Artefakt je Lauf (11x Ende Juli, retention 5d) — Accrual
+  passiert IM Retention-Fenster, woechentlicher Cleanup wirkungslos. Fixes: retention 5d->1d
+  (botmatiq 5ee532d), 116-MB-Leiche in botmatiq-mcp geloescht (90d-Default), Max-Retention
+  auf allen 34 Repos per API auf 7d gedeckelt. Upload-Probe gruen -> kein $0-Budget, CI laeuft,
+  Overage $0.25/GB-Monat -> Restmonat <1 USD. Offen: Actions/Packages-Split (GHCR zaehlt in
+  denselben Pool, PAT hat keine Packages-Permission) — Andreas checkt Billing-UI.
 - 2026-08-09 — Kernel-Reboot KAI+Botmatiq (6.8.0-136 -> -137, Trigger: libc6 + linux-image via
   unattended-upgrades, Auto-Patch-Alert) per One-shot aus kingdom-ai. Beide gruen: KAI 85/85
   Container (Namens-Diff leer), 0 failed units, nginx aktiv/caddy disabled, DNS OK, Vault 200;
