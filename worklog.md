@@ -4,6 +4,14 @@
 > When it grows past ~30 lines, trim the oldest — this is a rolling window, not an
 > archive. Deeper detail lives in the per-area files, not here.
 
+- 2026-08-09 — Kernel-Reboot KAI+Botmatiq (6.8.0-136 -> -137, Trigger: libc6 + linux-image via
+  unattended-upgrades, Auto-Patch-Alert) per One-shot aus kingdom-ai. Beide gruen: KAI 85/85
+  Container (Namens-Diff leer), 0 failed units, nginx aktiv/caddy disabled, DNS OK, Vault 200;
+  Botmatiq 12/12, /mnt/data (sdb) gemountet, test.botmatiq.de 200. app.easyarchitekt.de 200,
+  API-Health = /health (nicht /api/health). DABEI ERLEDIGT: kingdom-ai.service disabled
+  (Boot-Race-Gotcha vom 19.07.) — erster Reboot ohne failed unit, Gotcha als geloest markiert.
+  One-shot geloescht. Runner-Gotcha: /actions/workflows-Liste ist paginiert (30/Seite),
+  Registrierungs-Check neuer One-shots braucht per_page=100.
 - 2026-08-07 (2) — PROD-DEPLOY nach ausdruecklicher Freigabe von Andreas. main 9b00806 -> c2e9dc9.
   Bewusst ENG geschnitten statt staging komplett zu promoten: nur (a) x-org-id-Security-Fix
   (cherry-pick 8607917), (b) Google-Ads v24 (cherry-pick 3e6ac65), (c) E2E-Isolationstest —

@@ -302,12 +302,12 @@ gegen Compose-Datei diffen.
   `docker compose up -d`. dockerd restauriert die Alt-Container parallel ->
   compose kollidiert am Namen `kingdom-postgres` -> Exit 1.
 - **Fix (2026-07-19)**: `docker compose up -d --no-deps redis` (neu, unless-stopped,
-  healthy), danach `systemctl reset-failed kingdom-ai.service`. Struktur offen:
-  Empfehlung = Unit disablen (restart-policies decken den Boot ab; das
-  `ExecStop=compose down` hat nie gegriffen, weil die Unit nie aktiv wurde).
-  Alternative = Stack einmalig unter das Compose-Projekt recreaten und
-  restart-policies entfernen. Postgres-Daten liegen im Named Volume
-  `kingdom-postgres-data` — ein Recreate waere datensicher.
+  healthy), danach `systemctl reset-failed kingdom-ai.service`.
+- **GELOEST (2026-08-09)**: `systemctl disable kingdom-ai.service` ausgefuehrt (Unit
+  existiert weiter, startet aber nicht mehr beim Boot). Erster Reboot danach
+  (Kernel 6.8.0-137): 0 failed units, 85/85 Container via restart-policies zurueck,
+  Namens-Diff leer. Restart-policies decken den Boot vollstaendig ab. Unit bei
+  Bedarf manuell nutzbar (`systemctl start`), nicht loeschen.
 
 ## PS 5.1: eingebettete doppelte Quotes an native EXEs gehen verloren (psql -c)
 - **Symptom**: psql meldet `Spalte »pzn« existiert nicht` — das SQL kam ohne die
