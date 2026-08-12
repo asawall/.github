@@ -1,7 +1,10 @@
 # CLAUDE.md
 
-Moved. The single source of truth is the repo-root **`/CLAUDE.md`** (memory index),
-which loads `regeln.md`, `infra.md`, `gotchas.md`, `runbooks.md`, `worklog.md`.
+Moved. Die Betriebsdoku liegt seit dem 12.08.2026 im **privaten** Repo
+`asawall/ops-docs` (Einstiegspunkt: dessen `/CLAUDE.md`, geladen über
+`bootstrap.sh`).
 
-Do not add content here — a second authoritative copy is exactly the drift we removed
-on 2026-07-11.
+Dieses Repo enthält bewusst nur noch die Reusable Workflows und Composite
+Actions — es muss öffentlich bleiben, damit die `uses:`-Einbindungen in den
+übrigen Repos funktionieren. Deshalb hier keine Server-Adressen, keine
+Zugriffspfade, keine Arbeitshistorie.

@@ -59,12 +59,15 @@ jobs:
 
 In allen 10 Repos verfügbar als `${{ vars.NAME }}`:
 
-| Variable | Wert |
-|---|---|
-| `KAI_HOST` / `KAI_USER` | 46.224.164.200 / root |
-| `BOTMATIQ_HOST` / `BOTMATIQ_USER` | 5.9.112.153 / botadmin |
-| `CPANEL_HOST` / `CPANEL_USER` | 88.99.195.89 / root |
-| `GHA_RUNNER_HOST` / `GHA_RUNNER_USER` | 178.104.211.135 / gha |
+| Variable |
+|---|
+| `KAI_HOST` / `KAI_USER` |
+| `BOTMATIQ_HOST` / `BOTMATIQ_USER` |
+| `CPANEL_HOST` / `CPANEL_USER` |
+| `GHA_RUNNER_HOST` / `GHA_RUNNER_USER` |
+
+Die Werte stehen zentral in den Repository Variables und in `asawall/ops-docs`
+(privat). Sie gehören nicht in dieses öffentliche Repo.
 
 ## Beispiel: kompletter Deploy-Pipeline
 
